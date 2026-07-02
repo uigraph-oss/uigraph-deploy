@@ -1,0 +1,146 @@
+name: uigraph
+
+services:
+  uigraph-api:
+    image: uigraph/uigraph-api:latest
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    environment:
+      PORT: '8080'
+      POSTGRES_URL: 'postgres://uigraph:devpassword@postgres:5432/uigraph?sslmode=disable'
+      REDIS_URL: 'redis://redis:6379'
+      UIGRAPH_SECRET_KEY: 'dev-secret-key-32-bytes-long-!!!'
+      UIGRAPH_DOMAIN: 'localhost'
+      UIGRAPH_PUBLIC_URL: 'http://localhost:3000'
+      UIGRAPH_FRONTEND_URL: 'http://localhost:3000'
+      UIGRAPH_INTERNAL_FRONTEND_URL: 'http://uigraph-ui'
+      UIGRAPH_ADMIN_EMAIL: 'admin@uigraph.app'
+      UIGRAPH_ADMIN_PASSWORD: 'admin'
+      STORAGE_BACKEND: 'minio'
+      STORAGE_ENDPOINT: 'http://minio:9000'
+      STORAGE_PUBLIC_ENDPOINT: 'http://localhost:9000'
+      STORAGE_BUCKET: 'uigraph'
+      STORAGE_ACCESS_KEY: 'uigraph'
+      STORAGE_SECRET_KEY: 'devpassword'
+      STORAGE_REGION: 'us-east-1'
+      STORAGE_FORCE_PATH_STYLE: 'true'
+      FIGMA_CLIENT_ID: '${FIGMA_CLIENT_ID:-}'
+      FIGMA_CLIENT_SECRET: '${FIGMA_CLIENT_SECRET:-}'
+      FIGMA_REDIRECT_URI: '${FIGMA_REDIRECT_URI:-http://localhost:3000/api/v1/figma/callback}'
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:8080/healthz || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  uigraph-graphql:
+    image: uigraph/uigraph-graphql:latest
+    restart: unless-stopped
+    ports:
+      - '8090:8090'
+    environment:
+      API_BASE_URL: 'http://uigraph-api:8080'
+      PORT: '8090'
+      ENV: 'production'
+    depends_on:
+      uigraph-api: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:8090/healthz || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  uigraph-gateway:
+    image: uigraph/uigraph-gateway:latest
+    restart: unless-stopped
+    ports:
+      - '8081:8080'
+    environment:
+      PORT: '8080'
+      UIGRAPH_API_URL: 'http://uigraph-api:8080'
+      STORAGE_ENDPOINT: 'http://minio:9000'
+      STORAGE_PUBLIC_ENDPOINT: 'http://localhost:9000'
+      STORAGE_BUCKET: 'uigraph'
+      STORAGE_ACCESS_KEY: 'uigraph'
+      STORAGE_SECRET_KEY: 'devpassword'
+      STORAGE_REGION: 'us-east-1'
+      STORAGE_FORCE_PATH_STYLE: 'true'
+    depends_on:
+      uigraph-api: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:8080/healthz || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  uigraph-ui:
+    image: uigraph/uigraph-ui:latest
+    restart: unless-stopped
+    ports:
+      - '3000:80'
+    environment:
+      UIGRAPH_API_URL: 'http://uigraph-api:8080'
+      UIGRAPH_GRAPHQL_URL: 'http://uigraph-graphql:8090'
+    depends_on:
+      uigraph-api: { condition: service_healthy }
+      uigraph-graphql: { condition: service_healthy }
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: 'uigraph'
+      POSTGRES_USER: 'uigraph'
+      POSTGRES_PASSWORD: 'devpassword'
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U uigraph']
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --save 60 1 --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ':9001'
+    restart: unless-stopped
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: 'uigraph'
+      MINIO_ROOT_PASSWORD: 'devpassword'
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
+
+networks:
+  default:
+    name: uigraph

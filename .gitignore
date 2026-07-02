@@ -1,0 +1,5 @@
+data/*
+uigraph-api/bin/*
+.pnpm-store
+.env
+.env.local
