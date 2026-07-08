@@ -1,0 +1,17 @@
+{{- range $component := list "api" "graphql" "gateway" "ui" }}
+{{- $svc := index $.Values $component }}
+{{- if $svc.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" $ "component" $component) }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" $ "component" $component) | nindent 4 }}
+spec:
+  minAvailable: {{ $svc.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "uigraph.componentSelectorLabels" (dict "root" $ "component" $component) | nindent 6 }}
+---
+{{- end }}
+{{- end }}

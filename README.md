@@ -56,6 +56,8 @@ This README covers local evaluation. For everything else, see the self-hosting d
 - [Authentication & SSO](https://docs.uigraph.app/self-hosting/authentication) — password login, OAuth2/OIDC (Entra ID, Okta, GitHub, generic OIDC), sessions, role mapping
 - [Operations](https://docs.uigraph.app/self-hosting/operations) — TLS, upgrades, backups
 
+Deploying to production on AWS? See [`k8s/README.md`](k8s/README.md) for a Helm chart + Terraform path onto an existing EKS cluster, backed by RDS/ElastiCache/S3 instead of the bundled Postgres/Redis/MinIO above.
+
 ## License
 
 This project is licensed under the [Business Source License 1.1](LICENSE) (BUSL-1.1).

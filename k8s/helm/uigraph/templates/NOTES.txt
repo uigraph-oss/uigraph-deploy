@@ -1,0 +1,26 @@
+UiGraph has been deployed.
+
+{{- if .Values.ingress.enabled }}
+
+App URL:      {{ include "uigraph.publicUrl" . }}
+{{- if .Values.ingress.gatewayIngress.enabled }}
+Gateway URL:  https://{{ include "uigraph.gatewayHost" . }}   (used by uigraph-cli)
+{{- end }}
+
+The ALB can take a few minutes to provision after the Ingress is created. Check its status with:
+
+  kubectl get ingress {{ include "uigraph.fullname" . }} -n {{ .Release.Namespace }}
+
+Point the DNS records for {{ include "uigraph.appHost" . }}{{ if .Values.ingress.gatewayIngress.enabled }} and {{ include "uigraph.gatewayHost" . }}{{ end }} at the ALB hostname shown above once it's assigned.
+{{- else }}
+
+Ingress is disabled (ingress.enabled=false). Reach the app via `kubectl port-forward` or your own ingress/gateway.
+{{- end }}
+
+Watch pods come up:
+
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Sign in with the bootstrap admin ({{ .Values.app.adminEmail }} / the password in {{ include "uigraph.secretName" . }}) once uigraph-api reports healthy.
+
+See k8s/README.md in uigraph-deploy for prerequisites (AWS Load Balancer Controller, RDS/ElastiCache/S3, IRSA) and day-2 operations.

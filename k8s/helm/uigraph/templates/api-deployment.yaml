@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "api") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "api") | nindent 4 }}
+spec:
+  {{- if not .Values.api.autoscaling.enabled }}
+  replicas: {{ .Values.api.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "uigraph.componentSelectorLabels" (dict "root" . "component" "api") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "uigraph.componentLabels" (dict "root" . "component" "api") | nindent 8 }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "uigraph.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: '{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ['ALL']
+          ports:
+            - name: http
+              containerPort: {{ .Values.api.port }}
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.postgresPassword }}
+            - name: POSTGRES_URL
+              value: {{ include "uigraph.postgresUrl" . | quote }}
+            {{- if .Values.redis.authEnabled }}
+            - name: REDIS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.redisAuthToken }}
+            {{- end }}
+            - name: REDIS_URL
+              value: {{ include "uigraph.redisUrl" . | quote }}
+            - name: UIGRAPH_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.uigraphSecretKey }}
+            - name: STORAGE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.storageAccessKey }}
+            - name: STORAGE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.storageSecretKey }}
+            - name: UIGRAPH_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.adminPassword }}
+            - name: FIGMA_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.figmaClientSecret }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "uigraph.componentFullname" (dict "root" . "component" "api") }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}

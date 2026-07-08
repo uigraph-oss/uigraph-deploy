@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "api") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "api") | nindent 4 }}
+data:
+  PORT: {{ .Values.api.port | quote }}
+  UIGRAPH_DOMAIN: {{ include "uigraph.appHost" . | quote }}
+  UIGRAPH_PUBLIC_URL: {{ include "uigraph.publicUrl" . | quote }}
+  UIGRAPH_FRONTEND_URL: {{ include "uigraph.frontendUrl" . | quote }}
+  UIGRAPH_INTERNAL_FRONTEND_URL: {{ include "uigraph.internalFrontendUrl" . | quote }}
+  UIGRAPH_ADMIN_EMAIL: {{ .Values.app.adminEmail | quote }}
+  STORAGE_BACKEND: {{ .Values.storage.backend | quote }}
+  {{- if .Values.storage.endpoint }}
+  STORAGE_ENDPOINT: {{ .Values.storage.endpoint | quote }}
+  {{- end }}
+  STORAGE_PUBLIC_ENDPOINT: {{ .Values.storage.publicEndpoint | quote }}
+  STORAGE_BUCKET: {{ .Values.storage.bucket | quote }}
+  STORAGE_REGION: {{ .Values.storage.region | quote }}
+  STORAGE_FORCE_PATH_STYLE: {{ .Values.storage.forcePathStyle | quote }}
+  FIGMA_CLIENT_ID: {{ .Values.figma.clientId | quote }}
+  FIGMA_REDIRECT_URI: {{ include "uigraph.figmaRedirectUri" . | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "graphql") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "graphql") | nindent 4 }}
+data:
+  PORT: {{ .Values.graphql.port | quote }}
+  ENV: 'production'
+  API_BASE_URL: {{ include "uigraph.internalApiUrl" . | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "gateway") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "gateway") | nindent 4 }}
+data:
+  PORT: {{ .Values.gateway.port | quote }}
+  UIGRAPH_API_URL: {{ include "uigraph.internalApiUrl" . | quote }}
+  {{- if .Values.storage.endpoint }}
+  STORAGE_ENDPOINT: {{ .Values.storage.endpoint | quote }}
+  {{- end }}
+  STORAGE_PUBLIC_ENDPOINT: {{ .Values.storage.publicEndpoint | quote }}
+  STORAGE_BUCKET: {{ .Values.storage.bucket | quote }}
+  STORAGE_REGION: {{ .Values.storage.region | quote }}
+  STORAGE_FORCE_PATH_STYLE: {{ .Values.storage.forcePathStyle | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "ui") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "ui") | nindent 4 }}
+data:
+  UIGRAPH_API_URL: {{ include "uigraph.internalApiUrl" . | quote }}
+  UIGRAPH_GRAPHQL_URL: {{ include "uigraph.internalGraphqlUrl" . | quote }}

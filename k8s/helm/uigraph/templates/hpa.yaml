@@ -1,0 +1,26 @@
+{{- range $component := list "api" "graphql" "gateway" "ui" }}
+{{- $svc := index $.Values $component }}
+{{- if $svc.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" $ "component" $component) }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" $ "component" $component) | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "uigraph.componentFullname" (dict "root" $ "component" $component) }}
+  minReplicas: {{ $svc.autoscaling.minReplicas }}
+  maxReplicas: {{ $svc.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $svc.autoscaling.targetCPUUtilizationPercentage }}
+---
+{{- end }}
+{{- end }}

@@ -3,3 +3,11 @@ uigraph-api/bin/*
 .pnpm-store
 .env
 .env.local
+
+# Terraform
+k8s/terraform/.terraform/
+k8s/terraform/*.tfstate
+k8s/terraform/*.tfstate.*
+k8s/terraform/*.tfplan
+k8s/terraform/terraform.tfvars
+k8s/terraform/*.auto.tfvars

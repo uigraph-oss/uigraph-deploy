@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "graphql") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "graphql") | nindent 4 }}
+spec:
+  {{- if not .Values.graphql.autoscaling.enabled }}
+  replicas: {{ .Values.graphql.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "uigraph.componentSelectorLabels" (dict "root" . "component" "graphql") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "uigraph.componentLabels" (dict "root" . "component" "graphql") | nindent 8 }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: graphql
+          image: '{{ .Values.graphql.image.repository }}:{{ .Values.graphql.image.tag }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ['ALL']
+          ports:
+            - name: http
+              containerPort: {{ .Values.graphql.port }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "uigraph.componentFullname" (dict "root" . "component" "graphql") }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.graphql.resources | nindent 12 }}

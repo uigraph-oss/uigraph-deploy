@@ -1,0 +1,12 @@
+apiVersion: v2
+name: uigraph
+description: UiGraph self-hosted deployment for AWS EKS (managed RDS/ElastiCache/S3, ALB ingress)
+type: application
+version: 0.1.0
+appVersion: '1.0.3'
+home: https://uigraph.app
+sources:
+  - https://github.com/uigraph-oss/uigraph-deploy
+maintainers:
+  - name: UiGraph
+    url: https://uigraph.app

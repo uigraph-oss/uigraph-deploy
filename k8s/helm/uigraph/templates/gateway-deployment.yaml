@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "gateway") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "gateway") | nindent 4 }}
+spec:
+  {{- if not .Values.gateway.autoscaling.enabled }}
+  replicas: {{ .Values.gateway.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "uigraph.componentSelectorLabels" (dict "root" . "component" "gateway") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "uigraph.componentLabels" (dict "root" . "component" "gateway") | nindent 8 }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "uigraph.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gateway
+          image: '{{ .Values.gateway.image.repository }}:{{ .Values.gateway.image.tag }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ['ALL']
+          ports:
+            - name: http
+              containerPort: {{ .Values.gateway.port }}
+          env:
+            - name: STORAGE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.storageAccessKey }}
+            - name: STORAGE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.storageSecretKey }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "uigraph.componentFullname" (dict "root" . "component" "gateway") }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.gateway.resources | nindent 12 }}

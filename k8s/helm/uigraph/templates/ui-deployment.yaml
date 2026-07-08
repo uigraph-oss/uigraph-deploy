@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "ui") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "ui") | nindent 4 }}
+spec:
+  {{- if not .Values.ui.autoscaling.enabled }}
+  replicas: {{ .Values.ui.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "uigraph.componentSelectorLabels" (dict "root" . "component" "ui") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "uigraph.componentLabels" (dict "root" . "component" "ui") | nindent 8 }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: ui
+          image: '{{ .Values.ui.image.repository }}:{{ .Values.ui.image.tag }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ['ALL']
+          ports:
+            - name: http
+              containerPort: {{ .Values.ui.port }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "uigraph.componentFullname" (dict "root" . "component" "ui") }}
+          # uigraph-ui has no documented health endpoint; probe the SPA root instead.
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.ui.resources | nindent 12 }}
