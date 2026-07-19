@@ -27,7 +27,6 @@ services:
       STORAGE_FORCE_PATH_STYLE: 'true'
       FIGMA_CLIENT_ID: '${FIGMA_CLIENT_ID:-}'
       FIGMA_CLIENT_SECRET: '${FIGMA_CLIENT_SECRET:-}'
-      FIGMA_REDIRECT_URI: '${FIGMA_REDIRECT_URI:-http://localhost:3000/api/v1/figma/callback}'
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -70,6 +69,13 @@ services:
       STORAGE_SECRET_KEY: 'devpassword'
       STORAGE_REGION: 'us-east-1'
       STORAGE_FORCE_PATH_STYLE: 'true'
+      AI_PROVIDER_NPM: '${AI_PROVIDER_NPM:-@ai-sdk/openai-compatible}'
+      AI_PROVIDER_API_URL: '${AI_PROVIDER_API_URL:-https://api.openai.com/v1}'
+      AI_PROVIDER_API_KEY: '${AI_PROVIDER_API_KEY:-}'
+      AI_PROVIDER_MODEL: '${AI_PROVIDER_MODEL:-}'
+      AI_PROVIDER_TITLE_MODEL: '${AI_PROVIDER_TITLE_MODEL:-}'
+      AI_PROVIDER_OPTIONS: '${AI_PROVIDER_OPTIONS:-}'
+      UIGRAPH_MCP_URL: 'http://uigraph-mcp:8080'
     depends_on:
       uigraph-api: { condition: service_healthy }
       minio: { condition: service_healthy }
@@ -87,9 +93,30 @@ services:
     environment:
       UIGRAPH_API_URL: 'http://uigraph-api:8080'
       UIGRAPH_GRAPHQL_URL: 'http://uigraph-graphql:8090'
+      UIGRAPH_GATEWAY_URL: 'http://uigraph-gateway:8080'
     depends_on:
       uigraph-api: { condition: service_healthy }
       uigraph-graphql: { condition: service_healthy }
+      uigraph-gateway: { condition: service_healthy }
+
+  uigraph-mcp:
+    image: uigraph/uigraph-mcp:latest
+    restart: unless-stopped
+    ports:
+      - '8082:8080'
+    environment:
+      PORT: '8080'
+      UIGRAPH_API_URL: 'http://uigraph-api:8080'
+      UIGRAPH_GATEWAY_URL: 'http://uigraph-gateway:8080'
+      UIGRAPH_FRONTEND_URL: 'http://localhost:3000'
+      UIGRAPH_MCP_PUBLIC_URL: 'http://localhost:8082'
+    depends_on:
+      uigraph-api: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:8080/healthz || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgres:
     image: postgres:16-alpine
