@@ -27,7 +27,6 @@ services:
       STORAGE_FORCE_PATH_STYLE: 'true'
       FIGMA_CLIENT_ID: '${FIGMA_CLIENT_ID:-}'
       FIGMA_CLIENT_SECRET: '${FIGMA_CLIENT_SECRET:-}'
-      FIGMA_REDIRECT_URI: '${FIGMA_REDIRECT_URI:-http://localhost:3000/api/v1/figma/callback}'
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
