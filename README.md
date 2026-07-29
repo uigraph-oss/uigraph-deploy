@@ -34,6 +34,26 @@ One command. Brings up the entire stack — idempotent, safe to re-run. Wait for
 
 > **Local evaluation only.** Ships placeholder secrets and plain HTTP. Before exposing this to anyone else: change the admin password, replace every secret (`openssl rand -hex 32`), and put it behind TLS — see [Operations](https://docs.uigraph.app/self-hosting/operations).
 
+## Onboard your own repo
+
+Bring any repo into this UiGraph instance, synced on its own.
+
+1. Add a `.uigraph.yaml` (+ artifacts — API spec, diagrams, DB schema) to your repo.
+2. Set `ownership.team` to a team that already exists in your org (sync fails otherwise) — create one from the UI first if needed.
+3. Get a service-account token (`UIGRAPH_TOKEN`) from **Settings → API Tokens** in the UI.
+4. Sync, from your repo's root:
+
+   ```bash
+   export UIGRAPH_TOKEN=<your token>
+
+   docker run --rm --network host \
+     -e UIGRAPH_TOKEN \
+     -v "$(pwd):/workspace" -w /workspace \
+     uigraph/uigraph-cli:latest sync --api-url http://localhost:8081
+   ```
+
+   Idempotent — safe to re-run.
+
 <details>
 <summary><h2>Optional: enable AI chat</h2></summary>
 
