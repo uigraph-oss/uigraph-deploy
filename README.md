@@ -2,9 +2,9 @@
 
 [![license](https://img.shields.io/badge/license-BUSL--1.1-blue)](LICENSE)
 
-Docker Compose deployment for self-hosting [UiGraph](https://uigraph.app) — API, GraphQL, UI, and bundled Postgres/Redis/MinIO, up with one command and no `.env` file.
+Docker Compose deployment for self-hosting [UIGraph](https://uigraph.app) — API, GraphQL, UI, and bundled Postgres/Redis/MinIO, up with one command and no `.env` file.
 
-## What is UiGraph?
+## What is UIGraph?
 
 A living map of your system — every service's API contracts, docs, diagrams, and owning team, synced into one browsable graph. **Maps** pin product screenshots to that graph so a UI element traces straight to the code and data behind it; database modeling turns SQL/NoSQL schemas into explorable structures; the [MCP server](https://github.com/uigraph-oss/uigraph-mcp) exposes the same context to AI coding assistants.
 
@@ -36,7 +36,7 @@ One command. Brings up the entire stack — idempotent, safe to re-run. Wait for
 
 ## Onboard your own repo
 
-Bring any repo into this UiGraph instance, synced on its own.
+Bring any repo into this UIGraph instance, synced on its own.
 
 1. Add a `.uigraph.yaml` (+ artifacts — API spec, diagrams, DB schema) to your repo.
 2. Set `ownership.team` to a team that already exists in your org (sync fails otherwise) — create one from the UI first if needed.
