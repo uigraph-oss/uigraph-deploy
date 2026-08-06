@@ -23,6 +23,21 @@ resource "random_password" "admin_password" {
 locals {
   admin_password_value = var.admin_password != null ? var.admin_password : try(random_password.admin_password[0].result, null)
 
+  # Only meaningful when secret_management = "terraform" (see kubernetes_secret.uigraph below) —
+  # wrapped in try() throughout since these resources have count = 0 in "external-secrets" mode,
+  # same reasoning as azs in cluster/locals.tf: both branches of an expression get evaluated
+  # regardless of which one is ultimately used.
+  secret_data = {
+    uigraph-secret-key  = try(random_password.uigraph_secret_key[0].result, "")
+    storage-access-key  = ""
+    storage-secret-key  = ""
+    postgres-password   = try(random_password.postgres[0].result, "")
+    admin-password      = try(local.admin_password_value, "")
+    figma-client-secret = var.figma_client_secret
+    redis-auth-token    = var.redis_auth_token_enabled ? var.redis_auth_token : ""
+    ai-provider-api-key = var.ai_provider_api_key != null ? var.ai_provider_api_key : ""
+  }
+
   base_helm_values = {
     serviceAccount = {
       name = var.k8s_service_account_name
@@ -73,6 +88,13 @@ locals {
         titleModel = var.ai_provider_title_model != null ? var.ai_provider_title_model : ""
       }
     }
+    # The chart's own checksum/config annotation only covers its own configmap.yaml — it has no
+    # visibility into this Terraform-managed Secret's contents (secrets.existingSecret), so
+    # without this, a secret-only change (e.g. rotating ai_provider_api_key) would update the
+    # Secret object but never actually roll the pods that read it.
+    podAnnotations = {
+      "checksum/secret" = var.secret_management == "terraform" ? sha256(jsonencode(local.secret_data)) : ""
+    }
   }
 }
 
@@ -88,20 +110,11 @@ resource "kubernetes_secret" "uigraph" {
 
   type = "Opaque"
 
-  data = {
-    uigraph-secret-key = random_password.uigraph_secret_key[0].result
-    # Left blank on purpose: the app prefers the pod's IRSA role over these when one is
-    # present (see terraform/README.md's "Storage credentials" section), and this Terraform
-    # never creates a static IAM user. Both keys still need to exist in the Secret — the
-    # chart's Deployments reference them by name via secretKeyRef regardless of value.
-    storage-access-key  = ""
-    storage-secret-key  = ""
-    postgres-password   = random_password.postgres[0].result
-    admin-password      = local.admin_password_value
-    figma-client-secret = var.figma_client_secret
-    redis-auth-token    = var.redis_auth_token_enabled ? var.redis_auth_token : ""
-    ai-provider-api-key = var.ai_provider_api_key != null ? var.ai_provider_api_key : ""
-  }
+  # storage-access-key/storage-secret-key are left blank on purpose: the app prefers the pod's
+  # IRSA role over these when one is present (see terraform/README.md's "Storage credentials"
+  # section), and this Terraform never creates a static IAM user. Both keys still need to exist
+  # in the Secret regardless — the chart's Deployments reference them by name via secretKeyRef.
+  data = local.secret_data
 
   depends_on = [kubernetes_namespace.this]
 }

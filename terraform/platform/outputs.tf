@@ -19,8 +19,15 @@ output "irsa_role_arn" {
   value = aws_iam_role.irsa.arn
 }
 
-output "cost_explorer_policy_arn" {
-  value = try(aws_iam_policy.cost_explorer[0].arn, null)
+output "billing_role_arn" {
+  description = "Paste into Settings → Cloud Connections → Connect Cloud Account → Role ARN, to enable the in-app service-costs feature for this account."
+  value       = try(aws_iam_role.billing[0].arn, null)
+}
+
+output "billing_external_id" {
+  description = "Paste into the same dialog's External ID field, alongside billing_role_arn. Read with `terraform output -raw billing_external_id`."
+  value       = try(random_password.billing_external_id[0].result, null)
+  sensitive   = true
 }
 
 output "admin_email" {
