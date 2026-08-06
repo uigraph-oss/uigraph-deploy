@@ -66,6 +66,13 @@ locals {
     figma = {
       clientId = var.figma_client_id
     }
+    gateway = {
+      aiProvider = {
+        npm        = var.ai_provider_npm
+        model      = var.ai_provider_model != null ? var.ai_provider_model : ""
+        titleModel = var.ai_provider_title_model != null ? var.ai_provider_title_model : ""
+      }
+    }
   }
 }
 
@@ -93,6 +100,7 @@ resource "kubernetes_secret" "uigraph" {
     admin-password      = local.admin_password_value
     figma-client-secret = var.figma_client_secret
     redis-auth-token    = var.redis_auth_token_enabled ? var.redis_auth_token : ""
+    ai-provider-api-key = var.ai_provider_api_key != null ? var.ai_provider_api_key : ""
   }
 
   depends_on = [kubernetes_namespace.this]

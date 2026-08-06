@@ -265,6 +265,33 @@ variable "figma_client_secret" {
   sensitive = true
 }
 
+# --- AI chat (uigraph-gateway) ---
+
+variable "ai_provider_api_key" {
+  description = "API key for the AI chat feature's provider. Stored in SSM Parameter Store (SecureString) and in the app's Kubernetes Secret. Leave null to disable AI chat entirely."
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "ai_provider_npm" {
+  description = "AI SDK provider package uigraph-gateway loads (e.g. \"@ai-sdk/openai\", \"@ai-sdk/openai-compatible\", \"@ai-sdk/anthropic\", \"@ai-sdk/amazon-bedrock\")."
+  type        = string
+  default     = "@ai-sdk/openai-compatible"
+}
+
+variable "ai_provider_model" {
+  description = "Model name for chat responses. Required for the chat feature to actually work, even though it's not enforced at the infrastructure level."
+  type        = string
+  default     = null
+}
+
+variable "ai_provider_title_model" {
+  description = "Model name for auto-generating conversation titles. Falls back to ai_provider_model when unset."
+  type        = string
+  default     = null
+}
+
 # --- App / Helm ---
 
 variable "manage_helm_release" {

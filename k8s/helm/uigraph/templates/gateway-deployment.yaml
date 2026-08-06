@@ -15,6 +15,8 @@ spec:
     metadata:
       labels:
         {{- include "uigraph.componentLabels" (dict "root" . "component" "gateway") | nindent 8 }}
+      annotations:
+        {{- include "uigraph.podAnnotations" . | nindent 8 }}
     spec:
       {{- with .Values.image.pullSecrets }}
       imagePullSecrets:
@@ -48,6 +50,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "uigraph.secretName" . }}
                   key: {{ .Values.secrets.keys.storageSecretKey }}
+            - name: AI_PROVIDER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.aiProviderApiKey }}
           envFrom:
             - configMapRef:
                 name: {{ include "uigraph.componentFullname" (dict "root" . "component" "gateway") }}

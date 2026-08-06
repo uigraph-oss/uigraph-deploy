@@ -127,6 +127,24 @@ Computed public hostnames / URLs shared across ConfigMaps, Deployments, and the 
 {{- printf "http://%s:%v" (include "uigraph.componentFullname" (dict "root" . "component" "gateway")) .Values.gateway.port -}}
 {{- end -}}
 
+{{- define "uigraph.internalMcpUrl" -}}
+{{- printf "http://%s:%v" (include "uigraph.componentFullname" (dict "root" . "component" "mcp")) .Values.mcp.port -}}
+{{- end -}}
+
+{{/*
+Pod template annotations shared by every Deployment: a checksum of the shared configmap.yaml, so
+a config-only change actually rolls pods — Kubernetes doesn't do this on its own for env vars
+sourced from a ConfigMap/Secret, they're only read at container start — plus any caller-supplied
+podAnnotations (e.g. Terraform passing a checksum of the externally-managed Secret's contents,
+which this chart has no visibility into when secrets.existingSecret is set).
+*/}}
+{{- define "uigraph.podAnnotations" -}}
+checksum/config: {{ include (print .Template.BasePath "/configmap.yaml") . | sha256sum }}
+{{- with .Values.podAnnotations }}
+{{ toYaml . }}
+{{- end }}
+{{- end -}}
+
 {{- define "uigraph.figmaRedirectUri" -}}
 {{- .Values.figma.redirectUri | default (printf "%s/api/v1/figma/callback" (include "uigraph.publicUrl" .)) -}}
 {{- end -}}

@@ -9,6 +9,12 @@ image:
   pullPolicy: IfNotPresent
   pullSecrets: []
 
+# Merged into every Deployment's pod template annotations, alongside an automatic checksum of
+# this chart's own configmap.yaml (so a config-only change still rolls pods — Kubernetes doesn't
+# do that on its own for env vars sourced from a ConfigMap/Secret). Useful for a checksum of an
+# externally-managed Secret this chart can't see the contents of (secrets.existingSecret).
+podAnnotations: {}
+
 # Published uigraph/* images currently run as root (no non-root USER baked in), so this defaults
 # to false — flipping it to true against these images fails every pod with "container has
 # runAsNonRoot and image will run as root". Revisit once the images themselves are confirmed to
@@ -40,6 +46,7 @@ secrets:
     adminPassword: admin-password
     figmaClientSecret: figma-client-secret
     redisAuthToken: redis-auth-token
+    aiProviderApiKey: ai-provider-api-key
   # Only used when secrets.existingSecret is empty. Leave blank and pass with
   # `--set secrets.values.xxx=...` or a values override file — do not commit real secrets here.
   values:
@@ -50,6 +57,7 @@ secrets:
     adminPassword: ''
     figmaClientSecret: ''
     redisAuthToken: ''
+    aiProviderApiKey: ''
 
 # Managed Postgres (RDS). Password comes from the Secret (secrets.keys.postgresPassword).
 postgres:
@@ -161,10 +169,12 @@ gateway:
   replicaCount: 2
   port: 8080
   resources:
-    # 1.0.5-beta gets OOMKilled at the old 256Mi limit (confirmed: exit 137) — bundles more than
-    # 1.0.1-era did.
-    requests: { cpu: 100m, memory: 256Mi }
-    limits: { cpu: 500m, memory: 512Mi }
+    # Handling an actual AI chat request (loading MCP tool schemas, the ai-sdk provider client,
+    # streaming responses) needs meaningfully more headroom than idle/health-check traffic —
+    # confirmed: the gateway process crashes with "JavaScript heap out of memory" on a chat
+    # request at 512Mi.
+    requests: { cpu: 100m, memory: 512Mi }
+    limits: { cpu: '1', memory: 1Gi }
   autoscaling:
     enabled: true
     minReplicas: 2
@@ -173,6 +183,10 @@ gateway:
   podDisruptionBudget:
     enabled: true
     minAvailable: 1
+  aiProvider:
+    npm: '@ai-sdk/openai-compatible'
+    model: ''
+    titleModel: ''
 
 ui:
   image:

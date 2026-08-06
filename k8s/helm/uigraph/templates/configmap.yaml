@@ -40,11 +40,17 @@ metadata:
 data:
   PORT: {{ .Values.gateway.port | quote }}
   UIGRAPH_API_URL: {{ include "uigraph.internalApiUrl" . | quote }}
+  UIGRAPH_MCP_URL: {{ include "uigraph.internalMcpUrl" . | quote }}
   STORAGE_ENDPOINT: {{ include "uigraph.storageEndpoint" . | quote }}
   STORAGE_PUBLIC_ENDPOINT: {{ .Values.storage.publicEndpoint | quote }}
   STORAGE_BUCKET: {{ .Values.storage.bucket | quote }}
   STORAGE_REGION: {{ .Values.storage.region | quote }}
   STORAGE_FORCE_PATH_STYLE: {{ .Values.storage.forcePathStyle | quote }}
+  AI_PROVIDER_NPM: {{ .Values.gateway.aiProvider.npm | quote }}
+  AI_PROVIDER_MODEL: {{ .Values.gateway.aiProvider.model | quote }}
+  {{- if .Values.gateway.aiProvider.titleModel }}
+  AI_PROVIDER_TITLE_MODEL: {{ .Values.gateway.aiProvider.titleModel | quote }}
+  {{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap
