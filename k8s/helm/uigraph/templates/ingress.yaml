@@ -9,10 +9,12 @@ metadata:
     kubernetes.io/ingress.class: {{ .Values.ingress.className }}
     alb.ingress.kubernetes.io/scheme: {{ .Values.ingress.scheme }}
     alb.ingress.kubernetes.io/target-type: ip
+    {{- if .Values.ingress.certificateArn }}
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: '443'
-    {{- if .Values.ingress.certificateArn }}
     alb.ingress.kubernetes.io/certificate-arn: {{ .Values.ingress.certificateArn }}
+    {{- else }}
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
     {{- end }}
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
@@ -41,5 +43,17 @@ spec:
                 name: {{ include "uigraph.componentFullname" (dict "root" . "component" "gateway") }}
                 port:
                   number: {{ .Values.gateway.port }}
+    {{- end }}
+    {{- if .Values.ingress.mcpIngress.enabled }}
+    - host: {{ include "uigraph.mcpHost" . | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "uigraph.componentFullname" (dict "root" . "component" "mcp") }}
+                port:
+                  number: {{ .Values.mcp.port }}
     {{- end }}
 {{- end -}}

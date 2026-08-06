@@ -1,0 +1,42 @@
+# --- "I already have an EKS cluster" variant ---
+# Fill these in from your own cluster/VPC. If instead you ran ../cluster first, copy
+# terraform.tfvars.new-cluster.example and paste in `terraform -chdir=../cluster output` instead.
+
+aws_region  = "us-east-1"
+aws_profile = "uigraph-nonprod"
+name_prefix = "uigraph-prod"
+
+cluster_name            = "my-existing-cluster"
+vpc_id                  = "vpc-0123456789abcdef0"
+private_subnet_ids      = ["subnet-aaaaaaaa", "subnet-bbbbbbbb"]
+public_subnet_ids       = ["subnet-cccccccc", "subnet-dddddddd"] # only needed for exposure_mode = "public"
+oidc_provider_arn       = "arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE"
+oidc_provider_url       = "oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE"
+node_security_group_id  = "sg-0123456789abcdef0"
+
+k8s_namespace            = "default"
+k8s_service_account_name = "uigraph"
+
+# Already running the AWS Load Balancer Controller? Skip installing another copy of it.
+install_alb_controller = false
+
+bucket_name = null # auto-generated; set explicitly if you want a specific name
+
+# "internal": only reachable inside the VPC/over VPN/peering — for companies that want this
+# purely internal. "public": internet-facing ALB.
+exposure_mode = "internal"
+
+domain_name = "uigraph.example.com" # -> app.uigraph.example.com, sync.uigraph.example.com
+
+# Own uigraph.example.com's DNS in Route53? Fill this in for fully automated ACM + DNS:
+# route53_zone_id = "Z0123456789ABCDEFGHIJ"
+# Otherwise, bring your own cert and point DNS at the output alb_hostname yourself:
+# acm_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/xxxxxxxx"
+# Or leave both unset for plain HTTP — fine for a first look, not for anything real.
+
+enable_cost_explorer_access = true
+
+tags = {
+  Project     = "uigraph"
+  Environment = "prod"
+}

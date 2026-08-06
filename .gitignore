@@ -11,3 +11,10 @@ k8s/terraform/*.tfstate.*
 k8s/terraform/*.tfplan
 k8s/terraform/terraform.tfvars
 k8s/terraform/*.auto.tfvars
+
+terraform/**/.terraform/
+terraform/**/*.tfstate
+terraform/**/*.tfstate.*
+terraform/**/*.tfplan
+terraform/**/terraform.tfvars
+terraform/**/*.auto.tfvars

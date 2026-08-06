@@ -1,0 +1,35 @@
+# --- "I ran ../cluster first" variant ---
+# After `terraform -chdir=../cluster apply`, run `terraform -chdir=../cluster output` and paste
+# the values below (or script it — see terraform/README.md).
+
+aws_region  = "us-east-1"
+aws_profile = "uigraph-nonprod"
+name_prefix = "uigraph-dev"
+
+cluster_name            = "uigraph-dev-eks"                                              # cluster/ output: cluster_name
+vpc_id                  = "vpc-REPLACE"                                                  # cluster/ output: vpc_id
+private_subnet_ids      = ["subnet-REPLACE1", "subnet-REPLACE2"]                         # cluster/ output: private_subnet_ids
+public_subnet_ids       = ["subnet-REPLACE3", "subnet-REPLACE4"]                         # cluster/ output: public_subnet_ids
+oidc_provider_arn       = "arn:aws:iam::REPLACE:oidc-provider/REPLACE"                   # cluster/ output: oidc_provider_arn
+oidc_provider_url       = "oidc.eks.us-east-1.amazonaws.com/id/REPLACE"                  # cluster/ output: oidc_provider_url
+node_security_group_id  = "sg-REPLACE"                                                   # cluster/ output: node_security_group_id
+
+install_alb_controller = true # cluster/ doesn't install it — this root does
+
+bucket_name = null
+
+exposure_mode = "public" # this is the "us" / publicly-viewable flavor
+domain_name   = "uigraph.example.com"
+
+# route53_zone_id = "Z0123456789ABCDEFGHIJ" # fully automated HTTPS if you own this domain's DNS
+
+enable_cost_explorer_access = true
+
+# Cheap/fast to tear down for repeated create/destroy testing:
+db_deletion_protection = false
+db_skip_final_snapshot = true
+
+tags = {
+  Project     = "uigraph"
+  Environment = "dev"
+}

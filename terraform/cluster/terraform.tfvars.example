@@ -1,0 +1,41 @@
+aws_region  = "us-east-1"
+aws_profile = "uigraph-nonprod"
+name_prefix = "uigraph-dev"
+
+# Leave create_vpc = true to have this root build a fresh VPC for the cluster.
+create_vpc         = true
+vpc_cidr           = "10.50.0.0/16"
+az_count           = 2
+single_nat_gateway = true # cheaper for dev/test; set false for HA production
+
+# Bringing your own VPC instead? Set create_vpc = false and fill these in (and you can likely
+# skip this whole cluster/ root anyway — see the root README's decision guide):
+# create_vpc                  = false
+# existing_vpc_id             = "vpc-0123456789abcdef0"
+# existing_private_subnet_ids = ["subnet-aaaaaaaa", "subnet-bbbbbbbb"]
+# existing_public_subnet_ids  = ["subnet-cccccccc", "subnet-dddddddd"]
+
+kubernetes_version = "1.36"
+
+# VPN-only / fully private companies: set this false. You'll then need VPN/bastion/Direct Connect
+# access into the VPC to run kubectl, helm, or platform/ afterward.
+cluster_endpoint_public_access = true
+
+node_instance_types = ["t3.medium"]
+node_min_size       = 2
+node_max_size       = 4
+node_desired_size   = 2
+
+# Only the principal that runs `terraform apply` gets kubectl/console access for free — AWS
+# account admin permissions don't grant that by themselves. Add teammates (or an SSO permission
+# set's role ARN) here, or grant access directly via `aws eks create-access-entry` instead if you'd
+# rather not put account-specific ARNs in version-controlled Terraform. See root README's
+# "Cluster access" section.
+# additional_admin_principal_arns = [
+#   "arn:aws:iam::123456789012:role/aws-reserved/sso.amazonaws.com/us-east-1/AWSReservedSSO_AdministratorAccess_EXAMPLE",
+# ]
+
+tags = {
+  Project     = "uigraph"
+  Environment = "dev"
+}

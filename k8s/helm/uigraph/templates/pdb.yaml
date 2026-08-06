@@ -1,4 +1,4 @@
-{{- range $component := list "api" "graphql" "gateway" "ui" }}
+{{- range $component := list "api" "graphql" "gateway" "ui" "mcp" }}
 {{- $svc := index $.Values $component }}
 {{- if $svc.podDisruptionBudget.enabled }}
 apiVersion: policy/v1

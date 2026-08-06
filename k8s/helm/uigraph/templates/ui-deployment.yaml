@@ -21,7 +21,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        runAsNonRoot: true
+        runAsNonRoot: {{ .Values.podSecurityContext.runAsNonRoot }}
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -31,8 +31,10 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
-            capabilities:
-              drop: ['ALL']
+            # No `capabilities.drop: [ALL]` here (unlike the other three services): this image's
+            # stock nginx entrypoint starts as root, chowns its cache dir, and drops privilege to
+            # the nginx user itself — that sequence needs CAP_CHOWN/CAP_SETUID/CAP_SETGID, which
+            # dropping ALL capabilities removes, breaking startup entirely.
           ports:
             - name: http
               containerPort: {{ .Values.ui.port }}

@@ -70,8 +70,10 @@ terraform output
 
 ## 2. Create the app Secret
 
-The chart needs `UIGRAPH_SECRET_KEY`, `STORAGE_ACCESS_KEY`/`STORAGE_SECRET_KEY`, the Postgres
-password, and `UIGRAPH_ADMIN_PASSWORD` in a Kubernetes Secret. Two options:
+The chart needs `UIGRAPH_SECRET_KEY`, the Postgres password, and `UIGRAPH_ADMIN_PASSWORD` in a
+Kubernetes Secret. `STORAGE_ACCESS_KEY`/`STORAGE_SECRET_KEY` are also read from it, but authentication to
+S3 goes through the IRSA role (see below) — leave both blank unless you're pointing at a non-AWS
+S3-compatible endpoint. Two options for the Secret itself:
 
 **Option A — recommended for production: External Secrets Operator**, syncing straight from the
 Secrets Manager entry Terraform created for the RDS password, plus whatever you use for the
@@ -88,7 +90,8 @@ spec:
   data:
     - secretKey: postgres-password
       remoteRef: { key: <postgres_master_user_secret_arn output>, property: password }
-    # ...uigraph-secret-key, storage-access-key, storage-secret-key, admin-password similarly
+    # ...uigraph-secret-key, admin-password similarly. storage-access-key/storage-secret-key can
+    # just be empty strings in the target Secret.
 ```
 
 Then set `secrets.existingSecret: uigraph-external-secret` in your Helm values and skip
@@ -99,8 +102,8 @@ Then set `secrets.existingSecret: uigraph-external-secret` in your Helm values a
 ```bash
 kubectl create secret generic uigraph \
   --from-literal=uigraph-secret-key="$(openssl rand -hex 32)" \
-  --from-literal=storage-access-key="<IAM user access key, if not using IRSA>" \
-  --from-literal=storage-secret-key="<IAM user secret key, if not using IRSA>" \
+  --from-literal=storage-access-key="" \
+  --from-literal=storage-secret-key="" \
   --from-literal=postgres-password="<from Secrets Manager: terraform output postgres_master_user_secret_arn>" \
   --from-literal=admin-password="$(openssl rand -hex 16)"
 ```
@@ -137,15 +140,13 @@ Once the ALB is provisioned (can take a few minutes), point DNS (`app.<domain>` 
 gateway ingress is enabled, `sync.<domain>`) at its hostname. Sign in at `https://app.<domain>`
 with `UIGRAPH_ADMIN_EMAIL` / the password you put in the Secret.
 
-### IRSA vs. static IAM-user credentials
+### Storage credentials: IRSA, no static keys
 
-The chart's `serviceAccount` is annotated with the IRSA role ARN by default, but
-`STORAGE_ACCESS_KEY`/`STORAGE_SECRET_KEY` are still required, non-empty config for
-`uigraph-api`/`uigraph-gateway` today (verify against those services' current source before
-assuming otherwise) — so the safe default is to also populate them with a static IAM user's
-keys. If a future `uigraph-api` release falls back to the default AWS credential chain when
-those two values are blank, IRSA alone is sufficient and the static keys can be dropped; until
-then, treat IRSA as defense-in-depth, not the sole credential path.
+The chart's `serviceAccount` is annotated with the IRSA role ARN by default, and both
+`uigraph-api` and `uigraph-gateway` authenticate to S3 through it automatically — no access keys
+required. Leave `STORAGE_ACCESS_KEY`/`STORAGE_SECRET_KEY` blank in the Secret. They're only needed
+if you're pointing the chart at a non-AWS S3-compatible endpoint (MinIO, on-prem), where IRSA
+doesn't apply.
 
 ## Upgrades
 
@@ -185,10 +186,9 @@ same as in `docker-compose.yml` — no separate migration step is needed.
 - **Figma OAuth redirect fails**: `FIGMA_REDIRECT_URI` is derived from `app.domain`
   (`https://app.<domain>/api/v1/figma/callback` by default) — it must exactly match what's
   registered in the Figma app's OAuth settings.
-- **S3 access denied from `uigraph-api`/`uigraph-gateway`**: check both the IRSA trust policy
-  (`k8s_namespace`/`k8s_service_account_name` in `terraform.tfvars` must match where the chart
-  is actually installed) and, if not relying on IRSA yet, that `STORAGE_ACCESS_KEY`/
-  `STORAGE_SECRET_KEY` in the Secret are a valid, non-expired IAM user key pair.
+- **S3 access denied from `uigraph-api`/`uigraph-gateway`**: check the IRSA trust policy —
+  `k8s_namespace`/`k8s_service_account_name` in `terraform.tfvars` must match where the chart is
+  actually installed.
 
 ## Known gaps / assumptions
 
@@ -200,9 +200,6 @@ same as in `docker-compose.yml` — no separate migration step is needed.
   `redis_auth_token_enabled = true` in Terraform to close this gap.
 - **`uigraph-ui` health check**: it has no documented `/healthz` endpoint, so its liveness/
   readiness probes target `/` (the SPA shell) instead.
-- **IRSA fallback**: see "IRSA vs. static IAM-user credentials" above — static keys are the
-  default until `uigraph-api`'s S3 client behavior with the default AWS credential chain is
-  confirmed.
 
 ## Uninstall
 

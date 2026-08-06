@@ -6,12 +6,15 @@ App URL:      {{ include "uigraph.publicUrl" . }}
 {{- if .Values.ingress.gatewayIngress.enabled }}
 Gateway URL:  https://{{ include "uigraph.gatewayHost" . }}   (used by uigraph-cli)
 {{- end }}
+{{- if .Values.ingress.mcpIngress.enabled }}
+MCP URL:      https://{{ include "uigraph.mcpHost" . }}   (used by AI assistants)
+{{- end }}
 
 The ALB can take a few minutes to provision after the Ingress is created. Check its status with:
 
   kubectl get ingress {{ include "uigraph.fullname" . }} -n {{ .Release.Namespace }}
 
-Point the DNS records for {{ include "uigraph.appHost" . }}{{ if .Values.ingress.gatewayIngress.enabled }} and {{ include "uigraph.gatewayHost" . }}{{ end }} at the ALB hostname shown above once it's assigned.
+Point the DNS records for {{ include "uigraph.appHost" . }}{{ if .Values.ingress.gatewayIngress.enabled }}, {{ include "uigraph.gatewayHost" . }}{{ end }}{{ if .Values.ingress.mcpIngress.enabled }}, and {{ include "uigraph.mcpHost" . }}{{ end }} at the ALB hostname shown above once it's assigned.
 {{- else }}
 
 Ingress is disabled (ingress.enabled=false). Reach the app via `kubectl port-forward` or your own ingress/gateway.

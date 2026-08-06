@@ -12,9 +12,7 @@ data:
   UIGRAPH_INTERNAL_FRONTEND_URL: {{ include "uigraph.internalFrontendUrl" . | quote }}
   UIGRAPH_ADMIN_EMAIL: {{ .Values.app.adminEmail | quote }}
   STORAGE_BACKEND: {{ .Values.storage.backend | quote }}
-  {{- if .Values.storage.endpoint }}
-  STORAGE_ENDPOINT: {{ .Values.storage.endpoint | quote }}
-  {{- end }}
+  STORAGE_ENDPOINT: {{ include "uigraph.storageEndpoint" . | quote }}
   STORAGE_PUBLIC_ENDPOINT: {{ .Values.storage.publicEndpoint | quote }}
   STORAGE_BUCKET: {{ .Values.storage.bucket | quote }}
   STORAGE_REGION: {{ .Values.storage.region | quote }}
@@ -42,9 +40,7 @@ metadata:
 data:
   PORT: {{ .Values.gateway.port | quote }}
   UIGRAPH_API_URL: {{ include "uigraph.internalApiUrl" . | quote }}
-  {{- if .Values.storage.endpoint }}
-  STORAGE_ENDPOINT: {{ .Values.storage.endpoint | quote }}
-  {{- end }}
+  STORAGE_ENDPOINT: {{ include "uigraph.storageEndpoint" . | quote }}
   STORAGE_PUBLIC_ENDPOINT: {{ .Values.storage.publicEndpoint | quote }}
   STORAGE_BUCKET: {{ .Values.storage.bucket | quote }}
   STORAGE_REGION: {{ .Values.storage.region | quote }}
@@ -59,3 +55,17 @@ metadata:
 data:
   UIGRAPH_API_URL: {{ include "uigraph.internalApiUrl" . | quote }}
   UIGRAPH_GRAPHQL_URL: {{ include "uigraph.internalGraphqlUrl" . | quote }}
+  UIGRAPH_GATEWAY_URL: {{ include "uigraph.internalGatewayUrl" . | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "mcp") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "mcp") | nindent 4 }}
+data:
+  PORT: {{ .Values.mcp.port | quote }}
+  UIGRAPH_API_URL: {{ include "uigraph.internalApiUrl" . | quote }}
+  UIGRAPH_GATEWAY_URL: {{ include "uigraph.internalGatewayUrl" . | quote }}
+  UIGRAPH_FRONTEND_URL: {{ include "uigraph.frontendUrl" . | quote }}
+  UIGRAPH_MCP_PUBLIC_URL: {{ include "uigraph.mcpPublicUrl" . | quote }}

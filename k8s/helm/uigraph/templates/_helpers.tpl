@@ -95,6 +95,14 @@ Computed public hostnames / URLs shared across ConfigMaps, Deployments, and the 
 {{- .Values.ingress.gatewayHost | default (printf "sync.%s" .Values.app.domain) -}}
 {{- end -}}
 
+{{- define "uigraph.mcpHost" -}}
+{{- .Values.ingress.mcpHost | default (printf "mcp.%s" .Values.app.domain) -}}
+{{- end -}}
+
+{{- define "uigraph.mcpPublicUrl" -}}
+{{- printf "https://%s" (include "uigraph.mcpHost" .) -}}
+{{- end -}}
+
 {{- define "uigraph.publicUrl" -}}
 {{- .Values.app.publicUrl | default (printf "https://%s" (include "uigraph.appHost" .)) -}}
 {{- end -}}
@@ -115,8 +123,21 @@ Computed public hostnames / URLs shared across ConfigMaps, Deployments, and the 
 {{- printf "http://%s:%v" (include "uigraph.componentFullname" (dict "root" . "component" "graphql")) .Values.graphql.port -}}
 {{- end -}}
 
+{{- define "uigraph.internalGatewayUrl" -}}
+{{- printf "http://%s:%v" (include "uigraph.componentFullname" (dict "root" . "component" "gateway")) .Values.gateway.port -}}
+{{- end -}}
+
 {{- define "uigraph.figmaRedirectUri" -}}
 {{- .Values.figma.redirectUri | default (printf "%s/api/v1/figma/callback" (include "uigraph.publicUrl" .)) -}}
+{{- end -}}
+
+{{/*
+uigraph-gateway's config schema requires STORAGE_ENDPOINT (unlike uigraph-api, which tolerates it
+being unset) — always emit a real value rather than omitting the key, defaulting to the region's
+S3 endpoint. Only used for S3-compatible alternatives (storage.endpoint) does this get overridden.
+*/}}
+{{- define "uigraph.storageEndpoint" -}}
+{{- .Values.storage.endpoint | default (printf "https://s3.%s.amazonaws.com" .Values.storage.region) -}}
 {{- end -}}
 
 {{/*

@@ -1,4 +1,4 @@
-{{- range $component := list "api" "graphql" "gateway" "ui" }}
+{{- range $component := list "api" "graphql" "gateway" "ui" "mcp" }}
 {{- $svc := index $.Values $component }}
 {{- if $svc.autoscaling.enabled }}
 apiVersion: autoscaling/v2

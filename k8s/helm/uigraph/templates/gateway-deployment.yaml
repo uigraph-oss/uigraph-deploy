@@ -22,7 +22,7 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "uigraph.serviceAccountName" . }}
       securityContext:
-        runAsNonRoot: true
+        runAsNonRoot: {{ .Values.podSecurityContext.runAsNonRoot }}
         seccompProfile:
           type: RuntimeDefault
       containers:

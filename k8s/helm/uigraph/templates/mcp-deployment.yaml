@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "graphql") }}
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "mcp") }}
   labels:
-    {{- include "uigraph.componentLabels" (dict "root" . "component" "graphql") | nindent 4 }}
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "mcp") | nindent 4 }}
 spec:
-  {{- if not .Values.graphql.autoscaling.enabled }}
-  replicas: {{ .Values.graphql.replicaCount }}
+  {{- if not .Values.mcp.autoscaling.enabled }}
+  replicas: {{ .Values.mcp.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "uigraph.componentSelectorLabels" (dict "root" . "component" "graphql") | nindent 6 }}
+      {{- include "uigraph.componentSelectorLabels" (dict "root" . "component" "mcp") | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "uigraph.componentLabels" (dict "root" . "component" "graphql") | nindent 8 }}
+        {{- include "uigraph.componentLabels" (dict "root" . "component" "mcp") | nindent 8 }}
     spec:
       {{- with .Values.image.pullSecrets }}
       imagePullSecrets:
@@ -25,8 +25,8 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - name: graphql
-          image: '{{ .Values.graphql.image.repository }}:{{ .Values.graphql.image.tag }}'
+        - name: mcp
+          image: '{{ .Values.mcp.image.repository }}:{{ .Values.mcp.image.tag }}'
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
@@ -35,10 +35,10 @@ spec:
               drop: ['ALL']
           ports:
             - name: http
-              containerPort: {{ .Values.graphql.port }}
+              containerPort: {{ .Values.mcp.port }}
           envFrom:
             - configMapRef:
-                name: {{ include "uigraph.componentFullname" (dict "root" . "component" "graphql") }}
+                name: {{ include "uigraph.componentFullname" (dict "root" . "component" "mcp") }}
           livenessProbe:
             httpGet:
               path: /healthz
@@ -52,4 +52,4 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
           resources:
-            {{- toYaml .Values.graphql.resources | nindent 12 }}
+            {{- toYaml .Values.mcp.resources | nindent 12 }}
