@@ -140,7 +140,7 @@ resource "helm_release" "uigraph" {
     yamlencode(var.helm_values_override),
   ]
 
-  # `depends_on helm_release.alb_controller` (below) makes destroy order correct: this release is
+  # `depends_on null_resource.alb_controller` (below) makes destroy order correct: this release is
   # torn down before the controller. But that's only real protection if `helm uninstall --wait`
   # actually blocks until the Ingress object is gone — which requires the still-running ALB
   # controller to notice the deletion, deprovision the real ALB/listeners, and remove its
@@ -154,6 +154,6 @@ resource "helm_release" "uigraph" {
     kubernetes_namespace.this,
     kubernetes_secret.uigraph,
     aws_iam_role_policy.irsa_s3,
-    helm_release.alb_controller,
+    null_resource.alb_controller,
   ]
 }
