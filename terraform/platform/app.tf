@@ -28,14 +28,15 @@ locals {
   # same reasoning as azs in cluster/locals.tf: both branches of an expression get evaluated
   # regardless of which one is ultimately used.
   secret_data = {
-    uigraph-secret-key  = try(random_password.uigraph_secret_key[0].result, "")
-    storage-access-key  = ""
-    storage-secret-key  = ""
-    postgres-password   = try(random_password.postgres[0].result, "")
-    admin-password      = try(local.admin_password_value, "")
-    figma-client-secret = var.figma_client_secret
-    redis-auth-token    = var.redis_auth_token_enabled ? var.redis_auth_token : ""
-    ai-provider-api-key = var.ai_provider_api_key != null ? var.ai_provider_api_key : ""
+    uigraph-secret-key        = try(random_password.uigraph_secret_key[0].result, "")
+    storage-access-key        = ""
+    storage-secret-key        = ""
+    postgres-password         = try(random_password.postgres[0].result, "")
+    admin-password            = try(local.admin_password_value, "")
+    figma-client-secret       = var.figma_client_secret
+    redis-auth-token          = var.redis_auth_token_enabled ? var.redis_auth_token : ""
+    ai-provider-api-key       = var.ai_provider_api_key != null ? var.ai_provider_api_key : ""
+    enterprise-internal-token = var.enterprise_internal_token != null ? var.enterprise_internal_token : ""
   }
 
   base_helm_values = {
@@ -69,14 +70,20 @@ locals {
       forcePathStyle = false
     }
     app = {
-      domain     = var.domain_name
-      adminEmail = local.admin_email
+      domain               = var.domain_name
+      adminEmail           = local.admin_email
+      cookieDomain         = var.cookie_domain != null ? var.cookie_domain : ""
+      enterpriseEnabled    = var.enterprise_enabled
+      enterpriseServiceUrl = var.enterprise_service_url != null ? var.enterprise_service_url : ""
     }
     ingress = {
       enabled        = true
       className      = "alb"
       certificateArn = local.effective_acm_certificate_arn
       scheme         = var.exposure_mode == "public" ? "internet-facing" : "internal"
+      # The chart's own default is app.<domain> (uigraph.appHost in _helpers.tpl); only set here
+      # because this deployment uses a different subdomain (var.app_subdomain) than that default.
+      appHost = "${var.app_subdomain}.${var.domain_name}"
     }
     figma = {
       clientId = var.figma_client_id
@@ -132,6 +139,16 @@ resource "helm_release" "uigraph" {
     yamlencode(local.base_helm_values),
     yamlencode(var.helm_values_override),
   ]
+
+  # `depends_on helm_release.alb_controller` (below) makes destroy order correct: this release is
+  # torn down before the controller. But that's only real protection if `helm uninstall --wait`
+  # actually blocks until the Ingress object is gone — which requires the still-running ALB
+  # controller to notice the deletion, deprovision the real ALB/listeners, and remove its
+  # finalizer. That round trip can take longer than the provider's 300s default, and once it
+  # times out Terraform proceeds to destroy the controller next, permanently orphaning the
+  # Ingress (nothing left to clear its finalizer) along with the real AWS ALB and its ACM
+  # certificate attachment. 900s gives that handshake realistic room to finish first.
+  timeout = 900
 
   depends_on = [
     kubernetes_namespace.this,

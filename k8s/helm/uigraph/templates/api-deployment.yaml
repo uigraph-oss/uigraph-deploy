@@ -81,6 +81,13 @@ spec:
                 secretKeyRef:
                   name: {{ include "uigraph.secretName" . }}
                   key: {{ .Values.secrets.keys.figmaClientSecret }}
+            {{- if .Values.app.enterpriseEnabled }}
+            - name: UIGRAPH_ENTERPRISE_INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.enterpriseInternalToken }}
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "uigraph.componentFullname" (dict "root" . "component" "api") }}

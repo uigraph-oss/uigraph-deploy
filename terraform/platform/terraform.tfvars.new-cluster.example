@@ -28,6 +28,7 @@ enable_cost_explorer_access = true
 # Cheap/fast to tear down for repeated create/destroy testing:
 db_deletion_protection = false
 db_skip_final_snapshot = true
+s3_force_destroy       = true
 
 tags = {
   Project     = "uigraph"

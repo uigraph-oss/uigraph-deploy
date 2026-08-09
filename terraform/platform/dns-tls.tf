@@ -4,7 +4,7 @@
 # acm_certificate_arn and point DNS yourself, or skip TLS entirely for a first look.
 resource "aws_acm_certificate" "this" {
   count                     = var.route53_zone_id != null ? 1 : 0
-  domain_name               = "app.${var.domain_name}"
+  domain_name               = "${var.app_subdomain}.${var.domain_name}"
   subject_alternative_names = ["sync.${var.domain_name}", "mcp.${var.domain_name}"]
   validation_method         = "DNS"
 
@@ -56,7 +56,7 @@ data "kubernetes_ingress_v1" "uigraph" {
 resource "aws_route53_record" "app" {
   count   = var.route53_zone_id != null && var.manage_helm_release ? 1 : 0
   zone_id = var.route53_zone_id
-  name    = "app.${var.domain_name}"
+  name    = "${var.app_subdomain}.${var.domain_name}"
   type    = "CNAME"
   ttl     = 300
   records = [data.kubernetes_ingress_v1.uigraph[0].status[0].load_balancer[0].ingress[0].hostname]

@@ -41,7 +41,7 @@ output "admin_password" {
 }
 
 output "app_url" {
-  value = "https://app.${var.domain_name}"
+  value = "https://${var.app_subdomain}.${var.domain_name}"
 }
 
 output "sync_url" {
@@ -53,7 +53,7 @@ output "mcp_url" {
 }
 
 output "alb_hostname" {
-  description = "The ALB's own DNS name, once the Ingress has been reconciled (kubectl get ingress). Point your own DNS at this if route53_zone_id wasn't set, or use it directly (with a temporary /etc/hosts entry for app.<domain_name>) for a first look."
+  description = "The ALB's own DNS name, once the Ingress has been reconciled (kubectl get ingress). Point your own DNS at this if route53_zone_id wasn't set, or use it directly (with a temporary /etc/hosts entry for <app_subdomain>.<domain_name>) for a first look."
   value       = try(data.kubernetes_ingress_v1.uigraph[0].status[0].load_balancer[0].ingress[0].hostname, null)
 }
 

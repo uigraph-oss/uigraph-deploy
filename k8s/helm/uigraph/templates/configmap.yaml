@@ -10,6 +10,9 @@ data:
   UIGRAPH_PUBLIC_URL: {{ include "uigraph.publicUrl" . | quote }}
   UIGRAPH_FRONTEND_URL: {{ include "uigraph.frontendUrl" . | quote }}
   UIGRAPH_INTERNAL_FRONTEND_URL: {{ include "uigraph.internalFrontendUrl" . | quote }}
+  {{- if .Values.app.cookieDomain }}
+  UIGRAPH_COOKIE_DOMAIN: {{ .Values.app.cookieDomain | quote }}
+  {{- end }}
   UIGRAPH_ADMIN_EMAIL: {{ .Values.app.adminEmail | quote }}
   STORAGE_BACKEND: {{ .Values.storage.backend | quote }}
   STORAGE_ENDPOINT: {{ include "uigraph.storageEndpoint" . | quote }}
@@ -19,6 +22,10 @@ data:
   STORAGE_FORCE_PATH_STYLE: {{ .Values.storage.forcePathStyle | quote }}
   FIGMA_CLIENT_ID: {{ .Values.figma.clientId | quote }}
   FIGMA_REDIRECT_URI: {{ include "uigraph.figmaRedirectUri" . | quote }}
+  UIGRAPH_ENTERPRISE: {{ .Values.app.enterpriseEnabled | quote }}
+  {{- if .Values.app.enterpriseServiceUrl }}
+  UIGRAPH_ENTERPRISE_SERVICE_URL: {{ .Values.app.enterpriseServiceUrl | quote }}
+  {{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap

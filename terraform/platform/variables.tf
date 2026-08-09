@@ -116,6 +116,12 @@ variable "db_skip_final_snapshot" {
   default     = false
 }
 
+variable "s3_force_destroy" {
+  description = "Allow `terraform destroy` to delete the asset bucket even when it still has objects (and every historical version, since versioning is enabled). Leave false for anything you care about; true makes destroy fully hands-off for test environments, at the cost of silently taking user-uploaded data with it."
+  type        = bool
+  default     = false
+}
+
 # --- ElastiCache (Redis) ---
 
 variable "redis_engine_version" {
@@ -196,8 +202,20 @@ variable "exposure_mode" {
 }
 
 variable "domain_name" {
-  description = "Base domain the app is served on. The chart derives app.<domain_name> (UI) and sync.<domain_name> (gateway/CLI sync) from this. Required even for a quick internal look — see terraform/README.md for the no-DNS-yet option (a temporary /etc/hosts entry)."
+  description = "Base domain the app is served on. The chart derives <app_subdomain>.<domain_name> (UI) and sync.<domain_name> (gateway/CLI sync) from this. Required even for a quick internal look — see terraform/README.md for the no-DNS-yet option (a temporary /etc/hosts entry)."
   type        = string
+}
+
+variable "app_subdomain" {
+  description = "Subdomain prefix the UI is served on, e.g. \"app\" -> app.<domain_name>. Override for your own deployment (e.g. \"console\") without changing the chart's own default, which self-hosted installs get unless they set this too."
+  type        = string
+  default     = "app"
+}
+
+variable "cookie_domain" {
+  description = "Shares the session cookie across subdomains, e.g. \".example.com\" — only needed when something on another subdomain (a marketing/billing site) needs the same session. Leave null for self-hosted (host-only cookie, single shared URL)."
+  type        = string
+  default     = null
 }
 
 variable "route53_zone_id" {
@@ -290,6 +308,27 @@ variable "ai_provider_title_model" {
   description = "Model name for auto-generating conversation titles. Falls back to ai_provider_model when unset."
   type        = string
   default     = null
+}
+
+# --- Enterprise integration seam (managed SaaS only — irrelevant to self-hosted) ---
+
+variable "enterprise_enabled" {
+  description = "Registers uigraph-api's internal endpoints used by the separate, privately-deployed uigraph-enterprise service (signup/billing for the managed SaaS product). Leave false for self-hosted deployments."
+  type        = bool
+  default     = false
+}
+
+variable "enterprise_service_url" {
+  description = "Public URL of the uigraph-enterprise service, used by uigraph-api for outbound seat-limit checks. Only relevant when enterprise_enabled = true."
+  type        = string
+  default     = null
+}
+
+variable "enterprise_internal_token" {
+  description = "Shared secret authenticating calls between uigraph-api and uigraph-enterprise. Must match the value configured on uigraph-enterprise's own deployment. Required when enterprise_enabled = true."
+  type        = string
+  default     = null
+  sensitive   = true
 }
 
 # --- App / Helm ---

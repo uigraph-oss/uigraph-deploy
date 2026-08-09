@@ -1,6 +1,16 @@
 resource "aws_s3_bucket" "this" {
   bucket = local.bucket_name
   tags   = var.tags
+
+  # Without this, `terraform destroy` fails with BucketNotEmpty the moment the app has ever
+  # stored a single asset -- and since versioning is enabled below, even an "empty" bucket (no
+  # current objects) can still fail the same way once old versions exist from before an object
+  # was overwritten or versioning was suspended. force_destroy purges every version and delete
+  # marker, not just current objects, so destroy actually completes unattended. Defaults false
+  # since this is real user-uploaded data — opt in per environment (e.g. true for dev, where
+  # throwaway teardowns are routine; false for prod, where an accidental destroy shouldn't
+  # silently take the asset bucket's contents with it).
+  force_destroy = var.s3_force_destroy
 }
 
 resource "aws_s3_bucket_versioning" "this" {
@@ -31,7 +41,7 @@ resource "aws_s3_bucket_cors_configuration" "this" {
   cors_rule {
     allowed_methods = ["GET", "PUT", "HEAD"]
     allowed_origins = concat(
-      ["https://app.${var.domain_name}", "http://app.${var.domain_name}"],
+      ["https://${var.app_subdomain}.${var.domain_name}", "http://${var.app_subdomain}.${var.domain_name}"],
       var.additional_cors_origins,
     )
     allowed_headers = ["*"]
