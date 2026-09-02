@@ -34,6 +34,9 @@ locals {
     postgres-password         = try(random_password.postgres[0].result, "")
     admin-password            = try(local.admin_password_value, "")
     figma-client-secret       = var.figma_client_secret
+    github-app-client-secret  = var.github_app_client_secret
+    github-app-private-key    = var.github_app_private_key_base64
+    github-webhook-secret     = var.github_webhook_secret
     redis-auth-token          = var.redis_auth_token_enabled ? var.redis_auth_token : ""
     ai-provider-api-key       = var.ai_provider_api_key != null ? var.ai_provider_api_key : ""
     enterprise-internal-token = var.enterprise_internal_token != null ? var.enterprise_internal_token : ""
@@ -87,6 +90,11 @@ locals {
     }
     figma = {
       clientId = var.figma_client_id
+    }
+    githubApp = {
+      appId    = var.github_app_id
+      slug     = var.github_app_slug
+      clientId = var.github_app_client_id
     }
     gateway = {
       aiProvider = {

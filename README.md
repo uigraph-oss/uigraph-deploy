@@ -4,6 +4,8 @@
 
 Docker Compose deployment for self-hosting [UIGraph](https://uigraph.app) — API, GraphQL, UI, and bundled Postgres/Redis/MinIO, up with one command and no `.env` file.
 
+**Product overview for AI assistants:** [uigraph.app/llms.txt](https://uigraph.app/llms.txt)
+
 ## What is UIGraph?
 
 A living map of your system — every service's API contracts, docs, diagrams, and owning team, synced into one browsable graph. **Maps** pin product screenshots to that graph so a UI element traces straight to the code and data behind it; database modeling turns SQL/NoSQL schemas into explorable structures; the [MCP server](https://github.com/uigraph-oss/uigraph-mcp) exposes the same context to AI coding assistants.

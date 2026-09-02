@@ -81,6 +81,21 @@ spec:
                 secretKeyRef:
                   name: {{ include "uigraph.secretName" . }}
                   key: {{ .Values.secrets.keys.figmaClientSecret }}
+            - name: GITHUB_APP_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.githubAppClientSecret }}
+            - name: GITHUB_APP_PRIVATE_KEY_BASE64
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.githubAppPrivateKey }}
+            - name: GITHUB_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.githubWebhookSecret }}
             {{- if .Values.app.enterpriseEnabled }}
             - name: UIGRAPH_ENTERPRISE_INTERNAL_TOKEN
               valueFrom:

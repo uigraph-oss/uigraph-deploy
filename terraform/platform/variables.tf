@@ -283,6 +283,48 @@ variable "figma_client_secret" {
   sensitive = true
 }
 
+# --- GitHub App (repository import / workflow status) ---
+# All five of github_app_id/slug/client_id/client_secret/private_key_base64 are required together
+# once set -- uigraph-api errors at startup on a partial GitHub App configuration. Leave all empty
+# to disable the integration entirely.
+
+variable "github_app_id" {
+  # Deliberately a string, not number -- number round-trips through a float64 conversion on its
+  # way into the Helm values YAML and large-ish App IDs come out in scientific notation
+  # (e.g. 4656323 -> "4.656323e+06"), which uigraph-api's envInt64 then silently parses as 0.
+  type    = string
+  default = ""
+}
+
+variable "github_app_slug" {
+  type    = string
+  default = ""
+}
+
+variable "github_app_client_id" {
+  type    = string
+  default = ""
+}
+
+variable "github_app_client_secret" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "github_app_private_key_base64" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "github_webhook_secret" {
+  description = "Signs GitHub App webhook payloads (X-Hub-Signature-256). Leave empty to leave the /api/v1/github-app/webhooks route unregistered."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 # --- AI chat (uigraph-gateway) ---
 
 variable "ai_provider_api_key" {

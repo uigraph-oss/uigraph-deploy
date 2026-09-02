@@ -45,6 +45,9 @@ secrets:
     postgresPassword: postgres-password
     adminPassword: admin-password
     figmaClientSecret: figma-client-secret
+    githubAppClientSecret: github-app-client-secret
+    githubAppPrivateKey: github-app-private-key
+    githubWebhookSecret: github-webhook-secret
     redisAuthToken: redis-auth-token
     aiProviderApiKey: ai-provider-api-key
     enterpriseInternalToken: enterprise-internal-token
@@ -57,6 +60,9 @@ secrets:
     postgresPassword: ''
     adminPassword: ''
     figmaClientSecret: ''
+    githubAppClientSecret: ''
+    githubAppPrivateKey: ''
+    githubWebhookSecret: ''
     redisAuthToken: ''
     aiProviderApiKey: ''
     enterpriseInternalToken: ''
@@ -122,6 +128,16 @@ figma:
   # clientSecret is read from the Secret (secrets.keys.figmaClientSecret); leave figma.clientId
   # empty to disable the Figma integration entirely.
   redirectUri: ''
+
+githubApp:
+  appId: ''
+  slug: ''
+  clientId: ''
+  # clientSecret / privateKeyBase64 are read from the Secret (secrets.keys.githubAppClientSecret /
+  # githubAppPrivateKey). uigraph-api requires appId/slug/clientId/clientSecret/privateKeyBase64
+  # all set together, or all left empty to disable the integration.
+  # webhookSecret (secrets.keys.githubWebhookSecret) is independent -- leave it empty to leave the
+  # /api/v1/github-app/webhooks route unregistered even with the rest of the App configured.
 
 ingress:
   enabled: true
