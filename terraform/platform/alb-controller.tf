@@ -59,7 +59,12 @@ resource "null_resource" "alb_controller" {
   }
 
   provisioner "local-exec" {
-    command = <<-EOT
+    # local-exec defaults to /bin/sh, which is dash (not bash) on Debian/Ubuntu runners --
+    # `set -o pipefail` is a bash-ism and dash rejects it outright ("Illegal option -o
+    # pipefail"). Explicit bash makes this portable across a dev's own Mac (whose /bin/sh
+    # happens to tolerate it) and Linux CI runners (which don't).
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<-EOT
       set -euo pipefail
       KUBECONFIG_FILE=$(mktemp)
       aws eks update-kubeconfig \
@@ -84,14 +89,15 @@ resource "null_resource" "alb_controller" {
   }
 
   provisioner "local-exec" {
-    when    = destroy
-    command = <<-EOT
+    when        = destroy
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<-EOT
       set -euo pipefail
       KUBECONFIG_FILE=$(mktemp)
       aws eks update-kubeconfig \
         --name "${self.triggers.cluster_name}" \
         --region "${self.triggers.aws_region}" \
-        ${self.triggers.aws_profile != "" ? "--profile ${self.triggers.aws_profile}" : ""} \
+        ${self.triggers.aws_profile != "none" ? "--profile ${self.triggers.aws_profile}" : ""} \
         --kubeconfig "$KUBECONFIG_FILE" || exit 0
       KUBECONFIG="$KUBECONFIG_FILE" helm uninstall aws-load-balancer-controller --namespace kube-system || true
       rm -f "$KUBECONFIG_FILE"
