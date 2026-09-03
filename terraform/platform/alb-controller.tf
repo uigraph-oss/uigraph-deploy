@@ -54,7 +54,7 @@ resource "null_resource" "alb_controller" {
     chart_version = var.alb_controller_chart_version
     cluster_name  = var.cluster_name
     aws_region    = var.aws_region
-    aws_profile   = coalesce(var.aws_profile, "")
+    aws_profile   = coalesce(var.aws_profile, "none") # "" doesn't count as non-empty to coalesce() either -- this is purely a change-detection string, never passed to the CLI as-is (the command below checks `var.aws_profile != null` directly)
     vpc_id        = var.vpc_id
   }
 
