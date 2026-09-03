@@ -72,6 +72,13 @@ data:
   UIGRAPH_API_URL: {{ include "uigraph.internalApiUrl" . | quote }}
   UIGRAPH_GRAPHQL_URL: {{ include "uigraph.internalGraphqlUrl" . | quote }}
   UIGRAPH_GATEWAY_URL: {{ include "uigraph.internalGatewayUrl" . | quote }}
+  # uigraph-ui's nginx proxies /enterprise/ to this (no trailing slash -- the location block
+  # appends its own). Required at container start (envsubst'd directly into nginx.conf) as of
+  # uigraph-ui 1.0.6-rc.17 -- unset when enterprise isn't in play, same gate as the api
+  # ConfigMap's UIGRAPH_ENTERPRISE_SERVICE_URL above.
+  {{- if .Values.app.enterpriseServiceUrl }}
+  UIGRAPH_ENTERPRISE_URL: {{ .Values.app.enterpriseServiceUrl | quote }}
+  {{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap
