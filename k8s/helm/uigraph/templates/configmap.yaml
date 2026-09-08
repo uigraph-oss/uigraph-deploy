@@ -25,6 +25,7 @@ data:
   GITHUB_APP_ID: {{ .Values.githubApp.appId | quote }}
   GITHUB_APP_SLUG: {{ .Values.githubApp.slug | quote }}
   GITHUB_APP_CLIENT_ID: {{ .Values.githubApp.clientId | quote }}
+  SLACK_CLIENT_ID: {{ .Values.slackApp.clientId | quote }}
   UIGRAPH_ENTERPRISE: {{ .Values.app.enterpriseEnabled | quote }}
   {{- if .Values.app.enterpriseServiceUrl }}
   UIGRAPH_ENTERPRISE_SERVICE_URL: {{ .Values.app.enterpriseServiceUrl | quote }}

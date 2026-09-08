@@ -97,6 +97,11 @@ spec:
                   name: {{ include "uigraph.secretName" . }}
                   key: {{ .Values.secrets.keys.githubWebhookSecret }}
             {{- if .Values.app.enterpriseEnabled }}
+            - name: SLACK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.slackClientSecret }}
             - name: UIGRAPH_ENTERPRISE_INTERNAL_TOKEN
               valueFrom:
                 secretKeyRef:
