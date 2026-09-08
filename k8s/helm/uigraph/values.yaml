@@ -124,6 +124,11 @@ app:
   enterpriseServiceUrl: ''
   # enterpriseInternalToken is read from the Secret (secrets.keys.enterpriseInternalToken) — must
   # match the value configured on uigraph-enterprise's own deployment.
+  # Internal URL of the independent uigraph-slack release (see uigraph-platform's
+  # charts/uigraph-slack) that uigraph-ui's nginx proxies /slack/ to. Leave empty to use the
+  # chart's own inert loopback default -- see the UIGRAPH_SLACK_URL comment in configmap.yaml
+  # for why this one is never simply omitted the way enterpriseServiceUrl above is.
+  slackServiceUrl: ''
 
 figma:
   clientId: ''

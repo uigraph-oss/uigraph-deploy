@@ -80,6 +80,14 @@ data:
   {{- if .Values.app.enterpriseServiceUrl }}
   UIGRAPH_ENTERPRISE_URL: {{ .Values.app.enterpriseServiceUrl | quote }}
   {{- end }}
+  # uigraph-ui's nginx also proxies /slack/ this way. Unlike UIGRAPH_ENTERPRISE_URL above, this
+  # one is NEVER omitted: nginx.enterprise.conf.template's /slack/ block does a raw envsubst
+  # ${UIGRAPH_SLACK_URL} substitution (no Helm-style conditional is possible in that file), so an
+  # unset var leaves the literal "${UIGRAPH_SLACK_URL}" in nginx.conf -- which nginx then fails
+  # to parse as an unknown variable and refuses to start at all. Defaulting to a syntactically
+  # valid but inert loopback target keeps nginx booting even when uigraph-slack isn't deployed;
+  # unmatched requests just get a connection-refused 502 instead of crashing the whole pod.
+  UIGRAPH_SLACK_URL: {{ .Values.app.slackServiceUrl | default "http://127.0.0.1:1" | quote }}
 ---
 apiVersion: v1
 kind: ConfigMap
