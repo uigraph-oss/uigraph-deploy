@@ -325,6 +325,18 @@ variable "github_webhook_secret" {
   sensitive   = true
 }
 
+variable "slack_client_id" {
+  description = "OAuth client ID for uigraph-api's \"Connect Slack\" install flow. Separate from uigraph-slack's own SLACK_SIGNING_SECRET (uigraph-platform's charts/uigraph-slack). Leave both this and slack_client_secret empty to disable the integration."
+  type        = string
+  default     = ""
+}
+
+variable "slack_client_secret" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
 # --- AI chat (uigraph-gateway) ---
 
 variable "ai_provider_api_key" {

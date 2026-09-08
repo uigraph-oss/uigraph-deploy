@@ -40,6 +40,7 @@ locals {
     redis-auth-token          = var.redis_auth_token_enabled ? var.redis_auth_token : ""
     ai-provider-api-key       = var.ai_provider_api_key != null ? var.ai_provider_api_key : ""
     enterprise-internal-token = var.enterprise_internal_token != null ? var.enterprise_internal_token : ""
+    slack-client-secret       = var.slack_client_secret
   }
 
   base_helm_values = {
@@ -95,6 +96,9 @@ locals {
       appId    = var.github_app_id
       slug     = var.github_app_slug
       clientId = var.github_app_client_id
+    }
+    slackApp = {
+      clientId = var.slack_client_id
     }
     gateway = {
       aiProvider = {
