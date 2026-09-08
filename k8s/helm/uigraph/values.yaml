@@ -51,6 +51,7 @@ secrets:
     redisAuthToken: redis-auth-token
     aiProviderApiKey: ai-provider-api-key
     enterpriseInternalToken: enterprise-internal-token
+    slackClientSecret: slack-client-secret
   # Only used when secrets.existingSecret is empty. Leave blank and pass with
   # `--set secrets.values.xxx=...` or a values override file — do not commit real secrets here.
   values:
@@ -66,6 +67,7 @@ secrets:
     redisAuthToken: ''
     aiProviderApiKey: ''
     enterpriseInternalToken: ''
+    slackClientSecret: ''
 
 # Managed Postgres (RDS). Password comes from the Secret (secrets.keys.postgresPassword).
 postgres:
@@ -138,6 +140,11 @@ githubApp:
   # all set together, or all left empty to disable the integration.
   # webhookSecret (secrets.keys.githubWebhookSecret) is independent -- leave it empty to leave the
   # /api/v1/github-app/webhooks route unregistered even with the rest of the App configured.
+
+slackApp:
+  clientId: ''
+  # clientSecret is read from the Secret (secrets.keys.slackClientSecret). Separate from
+  # uigraph-slack's own SLACK_SIGNING_SECRET (uigraph-platform's charts/uigraph-slack).
 
 ingress:
   enabled: true
