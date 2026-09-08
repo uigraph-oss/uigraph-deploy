@@ -79,6 +79,12 @@ data:
   {{- if .Values.app.enterpriseServiceUrl }}
   UIGRAPH_ENTERPRISE_URL: {{ .Values.app.enterpriseServiceUrl | quote }}
   {{- end }}
+  # uigraph-ui's nginx proxies /slack/ to this (no trailing slash -- uigraph-slack's Bolt
+  # receiver listens on the fixed path /slack/events, so the incoming path must reach it
+  # unstripped). Only set when the slack component is enabled.
+  {{- if .Values.slack.enabled }}
+  UIGRAPH_SLACK_URL: {{ include "uigraph.internalSlackUrl" . | quote }}
+  {{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -92,3 +98,19 @@ data:
   UIGRAPH_GATEWAY_URL: {{ include "uigraph.internalGatewayUrl" . | quote }}
   UIGRAPH_FRONTEND_URL: {{ include "uigraph.frontendUrl" . | quote }}
   UIGRAPH_MCP_PUBLIC_URL: {{ include "uigraph.mcpPublicUrl" . | quote }}
+{{- if .Values.slack.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "slack") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "slack") | nindent 4 }}
+data:
+  PORT: {{ .Values.slack.port | quote }}
+  UIGRAPH_ENTERPRISE: 'true'
+  UIGRAPH_API_URL: {{ include "uigraph.internalApiUrl" . | quote }}
+  UIGRAPH_MCP_URL: {{ include "uigraph.internalMcpUrl" . | quote }}
+  AI_PROVIDER_NPM: {{ .Values.slack.aiProvider.npm | quote }}
+  AI_PROVIDER_MODEL: {{ .Values.slack.aiProvider.model | quote }}
+{{- end }}

@@ -51,6 +51,7 @@ secrets:
     redisAuthToken: redis-auth-token
     aiProviderApiKey: ai-provider-api-key
     enterpriseInternalToken: enterprise-internal-token
+    slackSigningSecret: slack-signing-secret
   # Only used when secrets.existingSecret is empty. Leave blank and pass with
   # `--set secrets.values.xxx=...` or a values override file — do not commit real secrets here.
   values:
@@ -66,6 +67,7 @@ secrets:
     redisAuthToken: ''
     aiProviderApiKey: ''
     enterpriseInternalToken: ''
+    slackSigningSecret: ''
 
 # Managed Postgres (RDS). Password comes from the Secret (secrets.keys.postgresPassword).
 postgres:
@@ -254,3 +256,34 @@ mcp:
   podDisruptionBudget:
     enabled: true
     minAvailable: 1
+
+slack:
+  # Slack app for UiGraph. Off by default: unlike api/graphql/gateway/ui/mcp this isn't part of
+  # every install — it needs a real Slack app (SLACK_SIGNING_SECRET) and runs in HTTP mode
+  # (multi-workspace, installations resolved from uigraph-api), authenticated with the same
+  # shared secrets.keys.enterpriseInternalToken uigraph-api's own /internal/v1/slack-app/*
+  # endpoints validate against. When enabled, uigraph-ui's nginx proxies /slack/ to it — see
+  # UIGRAPH_SLACK_URL in the ui ConfigMap below.
+  enabled: false
+  image:
+    repository: uigraph/uigraph-slack
+    tag: '1.0.0'
+  replicaCount: 2
+  port: 3000
+  resources:
+    # Same ai-sdk + MCP tool-calling path as uigraph-gateway per request (Slack event in, LLM
+    # call with tools, reply out) -- sized the same way; see gateway.resources above for the OOM
+    # incident that sizing is based on.
+    requests: { cpu: 100m, memory: 512Mi }
+    limits: { cpu: '1', memory: 1Gi }
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  aiProvider:
+    npm: '@ai-sdk/openai-compatible'
+    model: ''

@@ -1,9 +1,10 @@
 # UiGraph on AWS EKS
 
 A production-grade path for self-hosting UiGraph on an existing AWS EKS cluster: a Helm chart
-that runs the four stateless app services (`uigraph-api`, `uigraph-graphql`, `uigraph-gateway`,
-`uigraph-ui`) as Kubernetes Deployments, backed by managed AWS services instead of the bundled
-Postgres/Redis/MinIO used by the root [`docker-compose.yml`](../docker-compose.yml).
+that runs the stateless app services (`uigraph-api`, `uigraph-graphql`, `uigraph-gateway`,
+`uigraph-ui`, `uigraph-mcp`, and optionally `uigraph-slack`) as Kubernetes Deployments, backed by
+managed AWS services instead of the bundled Postgres/Redis/MinIO used by the root
+[`docker-compose.yml`](../docker-compose.yml).
 
 This tree does **not** create a VPC, EKS cluster, or node groups — that's assumed to already
 exist. It provisions the *data plane* (RDS, ElastiCache, S3, IAM) with Terraform and the *app*
@@ -148,15 +149,31 @@ required. Leave `STORAGE_ACCESS_KEY`/`STORAGE_SECRET_KEY` blank in the Secret. T
 if you're pointing the chart at a non-AWS S3-compatible endpoint (MinIO, on-prem), where IRSA
 doesn't apply.
 
+### Slack integration (optional)
+
+`uigraph-slack` is off by default (`slack.enabled: false`) — it's the only component here that
+needs its own external app registration (a Slack app) rather than just talking to the rest of the
+stack. Enable it with:
+
+```bash
+--set slack.enabled=true \
+--set secrets.values.slackSigningSecret=<Slack app's Signing Secret>
+```
+
+(or the equivalent keys in an externally-managed Secret, if using `secrets.existingSecret`). It
+reuses `secrets.values.enterpriseInternalToken` and `secrets.values.aiProviderApiKey` — no
+separate values for those. Once enabled, `uigraph-ui`'s nginx proxies `/slack/` to it, so a
+Slack app's Events API Request URL is `https://<app.domain>/slack/events`.
+
 ## Upgrades
 
 ```bash
 helm upgrade uigraph k8s/helm/uigraph -f values-prod.yaml
 ```
 
-Bump `api.image.tag` / `graphql.image.tag` / `gateway.image.tag` / `ui.image.tag` (or pass
-`--set`) to roll to a new UiGraph release. `uigraph-api` applies its own migrations on startup,
-same as in `docker-compose.yml` — no separate migration step is needed.
+Bump `api.image.tag` / `graphql.image.tag` / `gateway.image.tag` / `ui.image.tag` / `mcp.image.tag`
+/ `slack.image.tag` (or pass `--set`) to roll to a new UiGraph release. `uigraph-api` applies its
+own migrations on startup, same as in `docker-compose.yml` — no separate migration step is needed.
 
 ## Backup / restore
 

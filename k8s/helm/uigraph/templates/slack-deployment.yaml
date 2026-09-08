@@ -1,0 +1,75 @@
+{{- if .Values.slack.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "slack") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "slack") | nindent 4 }}
+spec:
+  {{- if not .Values.slack.autoscaling.enabled }}
+  replicas: {{ .Values.slack.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "uigraph.componentSelectorLabels" (dict "root" . "component" "slack") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "uigraph.componentLabels" (dict "root" . "component" "slack") | nindent 8 }}
+      annotations:
+        {{- include "uigraph.podAnnotations" . | nindent 8 }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: {{ .Values.podSecurityContext.runAsNonRoot }}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: slack
+          image: '{{ .Values.slack.image.repository }}:{{ .Values.slack.image.tag }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ['ALL']
+          ports:
+            - name: http
+              containerPort: {{ .Values.slack.port }}
+          env:
+            - name: SLACK_SIGNING_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.slackSigningSecret }}
+            - name: UIGRAPH_ENTERPRISE_INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.enterpriseInternalToken }}
+            - name: AI_PROVIDER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.aiProviderApiKey }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "uigraph.componentFullname" (dict "root" . "component" "slack") }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.slack.resources | nindent 12 }}
+{{- end }}

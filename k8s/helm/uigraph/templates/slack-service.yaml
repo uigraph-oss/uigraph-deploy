@@ -1,0 +1,16 @@
+{{- if .Values.slack.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "slack") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "slack") | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.slack.port }}
+      targetPort: http
+  selector:
+    {{- include "uigraph.componentSelectorLabels" (dict "root" . "component" "slack") | nindent 4 }}
+{{- end }}

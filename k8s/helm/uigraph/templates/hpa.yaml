@@ -1,4 +1,8 @@
-{{- range $component := list "api" "graphql" "gateway" "ui" "mcp" }}
+{{- $components := list "api" "graphql" "gateway" "ui" "mcp" -}}
+{{- if .Values.slack.enabled -}}
+{{- $components = append $components "slack" -}}
+{{- end -}}
+{{- range $component := $components }}
 {{- $svc := index $.Values $component }}
 {{- if $svc.autoscaling.enabled }}
 apiVersion: autoscaling/v2

@@ -131,6 +131,10 @@ Computed public hostnames / URLs shared across ConfigMaps, Deployments, and the 
 {{- printf "http://%s:%v" (include "uigraph.componentFullname" (dict "root" . "component" "mcp")) .Values.mcp.port -}}
 {{- end -}}
 
+{{- define "uigraph.internalSlackUrl" -}}
+{{- printf "http://%s:%v" (include "uigraph.componentFullname" (dict "root" . "component" "slack")) .Values.slack.port -}}
+{{- end -}}
+
 {{/*
 Pod template annotations shared by every Deployment: a checksum of the shared configmap.yaml, so
 a config-only change actually rolls pods — Kubernetes doesn't do this on its own for env vars
