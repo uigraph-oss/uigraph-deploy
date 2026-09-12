@@ -124,9 +124,6 @@ BUSL is not an OSI-approved open source license during the initial term. For com
 
 ## Related projects
 
-- [uigraph-api](https://github.com/uigraph-oss/uigraph-api) — backend API
-- [uigraph-ui](https://github.com/uigraph-oss/uigraph-ui) — web application
-- [uigraph-graphql](https://github.com/uigraph-oss/uigraph-graphql) — GraphQL BFF
-- [uigraph-gateway](https://github.com/uigraph-oss/uigraph-gateway) — CLI sync API
 - [uigraph-mcp](https://github.com/uigraph-oss/uigraph-mcp) — MCP server for AI assistants
-- [uigraph-sdk](https://github.com/uigraph-oss/uigraph-sdk) — TypeScript SDK
+- [uigraph-cli](https://github.com/uigraph-oss/uigraph-cli) — sync CLI used in [Onboard your own repo](#onboard-your-own-repo)
+- [uigraph-slack](https://github.com/uigraph-oss/uigraph-slack) — Slack app for chatting with your graph

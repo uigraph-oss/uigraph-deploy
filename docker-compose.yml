@@ -2,7 +2,7 @@ name: uigraph
 
 services:
   uigraph-api:
-    image: uigraph/uigraph-api:1.0.7-beta
+    image: uigraph/uigraph-api:latest
     restart: unless-stopped
     ports:
       - '8080:8080'
@@ -38,7 +38,7 @@ services:
       retries: 5
 
   uigraph-graphql:
-    image: uigraph/uigraph-graphql:1.0.5-beta
+    image: uigraph/uigraph-graphql:latest
     restart: unless-stopped
     ports:
       - '8090:8090'
@@ -55,7 +55,7 @@ services:
       retries: 5
 
   uigraph-gateway:
-    image: uigraph/uigraph-gateway:1.0.5-beta
+    image: uigraph/uigraph-gateway:latest
     restart: unless-stopped
     ports:
       - '8081:8080'
@@ -87,7 +87,7 @@ services:
       retries: 5
 
   uigraph-ui:
-    image: uigraph/uigraph-ui:1.0.6-beta
+    image: uigraph/uigraph-ui:latest
     restart: unless-stopped
     ports:
       - '3000:80'
