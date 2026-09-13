@@ -2,7 +2,7 @@ name: uigraph
 
 services:
   uigraph-api:
-    image: uigraph/uigraph-api:1.0.7-beta
+    image: uigraph/uigraph-api:latest
     restart: unless-stopped
     ports:
       - '8080:8080'
@@ -38,7 +38,7 @@ services:
       retries: 5
 
   uigraph-graphql:
-    image: uigraph/uigraph-graphql:1.0.5-beta
+    image: uigraph/uigraph-graphql:latest
     restart: unless-stopped
     ports:
       - '8090:8090'
@@ -55,7 +55,7 @@ services:
       retries: 5
 
   uigraph-gateway:
-    image: uigraph/uigraph-gateway:1.0.5-beta
+    image: uigraph/uigraph-gateway:latest
     restart: unless-stopped
     ports:
       - '8081:8080'
@@ -87,7 +87,7 @@ services:
       retries: 5
 
   uigraph-ui:
-    image: uigraph/uigraph-ui:1.0.6-beta
+    image: uigraph/uigraph-ui:latest
     restart: unless-stopped
     ports:
       - '3000:80'
@@ -113,11 +113,9 @@ services:
       UIGRAPH_MCP_PUBLIC_URL: 'http://localhost:8082'
     depends_on:
       uigraph-api: { condition: service_healthy }
-    healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://localhost:8080/healthz || exit 1']
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    # No healthcheck: this image is a scratch/distroless build (just the static /mcp binary,
+    # confirmed via `docker history` -- no shell, no wget, nothing a CMD-SHELL check could run).
+    # Nothing else in this file depends on this service being healthy.
 
   postgres:
     image: postgres:16-alpine
@@ -147,7 +145,9 @@ services:
       retries: 10
 
   minio:
-    image: minio/minio:latest
+    # minio/minio was pulled from Docker Hub entirely (no tags left there as of 2026-09) --
+    # quay.io/minio/minio is MinIO's own registry and still current.
+    image: quay.io/minio/minio:latest
     command: server /data --console-address ':9001'
     restart: unless-stopped
     ports:
