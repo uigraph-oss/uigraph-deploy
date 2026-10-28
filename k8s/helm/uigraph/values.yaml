@@ -40,6 +40,8 @@ secrets:
   existingSecret: ''
   keys:
     uigraphSecretKey: uigraph-secret-key
+    # Optional. Only set while rotating the key; see uigraph-api/docs/mcp-connectors.md.
+    uigraphSecretKeyPrevious: uigraph-secret-key-previous
     storageAccessKey: storage-access-key
     storageSecretKey: storage-secret-key
     postgresPassword: postgres-password
@@ -169,6 +171,20 @@ ingress:
   mcpIngress:
     enabled: true
   annotations: {}
+
+# MCP connectors. See uigraph-api/docs/mcp-connectors.md for the full list of settings.
+mcp:
+  # Internal MCP servers the API may connect to. Private and internal addresses are blocked by
+  # default. List each server by its full service name, or a whole namespace with a wildcard:
+  #   - my-mcp.tools.svc.cluster.local        one service, any port
+  #   - my-mcp.tools.svc.cluster.local:8080   one service and port
+  #   - '*.mcp.svc.cluster.local'             every service in the "mcp" namespace
+  # Servers listed here may also use plain http. Keep the list narrow: never list a wildcard for a
+  # namespace that holds databases or other internal services.
+  allowedAddresses: []
+  # Lifts the private-address block for EVERY host, including the Kubernetes API server and the
+  # node's cloud metadata endpoint. Prefer allowedAddresses.
+  allowPrivateHosts: false
 
 api:
   image:
