@@ -39,6 +39,7 @@ locals {
     github-webhook-secret     = var.github_webhook_secret
     redis-auth-token          = var.redis_auth_token_enabled ? var.redis_auth_token : ""
     ai-provider-api-key       = var.ai_provider_api_key != null ? var.ai_provider_api_key : ""
+    ai-speech-api-key         = var.ai_speech_api_key != null ? var.ai_speech_api_key : ""
     enterprise-internal-token = var.enterprise_internal_token != null ? var.enterprise_internal_token : ""
     slack-client-secret       = var.slack_client_secret
   }
@@ -105,6 +106,12 @@ locals {
         npm        = var.ai_provider_npm
         model      = var.ai_provider_model != null ? var.ai_provider_model : ""
         titleModel = var.ai_provider_title_model != null ? var.ai_provider_title_model : ""
+      }
+      aiSpeech = {
+        npm    = var.ai_speech_npm
+        apiUrl = var.ai_speech_api_url
+        model  = var.ai_speech_model
+        voice  = var.ai_speech_voice
       }
     }
     # The chart's own checksum/config annotation only covers its own configmap.yaml — it has no
