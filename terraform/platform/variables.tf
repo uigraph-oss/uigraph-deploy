@@ -364,6 +364,39 @@ variable "ai_provider_title_model" {
   default     = null
 }
 
+# Narration for walkthrough videos (uigraph-gateway). Leave ai_speech_npm empty to turn it off.
+
+variable "ai_speech_api_key" {
+  description = "API key for the narration (text-to-speech) provider. Stored in the app's Kubernetes Secret. Leave null when narration is off."
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "ai_speech_npm" {
+  description = "AI SDK provider package for narration (e.g. \"@ai-sdk/openai\"). Empty disables narration."
+  type        = string
+  default     = ""
+}
+
+variable "ai_speech_api_url" {
+  description = "Base URL for an OpenAI-compatible speech endpoint. Empty uses the provider's default."
+  type        = string
+  default     = ""
+}
+
+variable "ai_speech_model" {
+  description = "Speech model name (e.g. \"gpt-4o-mini-tts\")."
+  type        = string
+  default     = ""
+}
+
+variable "ai_speech_voice" {
+  description = "Default narration voice for the speech provider."
+  type        = string
+  default     = ""
+}
+
 # --- Enterprise integration seam (managed SaaS only — irrelevant to self-hosted) ---
 
 variable "enterprise_enabled" {
