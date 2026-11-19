@@ -35,6 +35,17 @@ data:
   MCP_ALLOW_PRIVATE_HOSTS: 'true'
   {{- end }}
   {{- end }}
+  UIGRAPH_EMBED_ENABLED: {{ .Values.app.embedEnabled | quote }}
+  UIGRAPH_VIDEO_RENDER_WORKER: {{ .Values.api.video.renderWorker | quote }}
+  UIGRAPH_FFMPEG_PATH: {{ .Values.api.video.ffmpegPath | quote }}
+  UIGRAPH_CHROMIUM_PATH: {{ .Values.api.video.chromiumPath | quote }}
+  UIGRAPH_VIDEO_RENDER_PAGES: {{ .Values.api.video.renderPages | quote }}
+  {{- if .Values.api.video.voiceKey }}
+  UIGRAPH_VIDEO_VOICE_KEY: {{ .Values.api.video.voiceKey | quote }}
+  {{- end }}
+  {{- if .Values.app.embedFrameAncestors }}
+  UIGRAPH_EMBED_FRAME_ANCESTORS: {{ .Values.app.embedFrameAncestors | quote }}
+  {{- end }}
   {{- if .Values.app.enterpriseServiceUrl }}
   UIGRAPH_ENTERPRISE_SERVICE_URL: {{ .Values.app.enterpriseServiceUrl | quote }}
   {{- end }}
@@ -69,6 +80,31 @@ data:
   AI_PROVIDER_MODEL: {{ .Values.gateway.aiProvider.model | quote }}
   {{- if .Values.gateway.aiProvider.titleModel }}
   AI_PROVIDER_TITLE_MODEL: {{ .Values.gateway.aiProvider.titleModel | quote }}
+  {{- end }}
+  {{- with .Values.gateway.aiSpeech }}
+  {{- if .npm }}
+  AI_SPEECH_NPM: {{ .npm | quote }}
+  {{- if .apiUrl }}
+  AI_SPEECH_API_URL: {{ .apiUrl | quote }}
+  {{- end }}
+  {{- if .model }}
+  AI_SPEECH_MODEL: {{ .model | quote }}
+  {{- end }}
+  {{- if .voice }}
+  AI_SPEECH_VOICE: {{ .voice | quote }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.gateway.aiTranscribe }}
+  {{- if .npm }}
+  AI_TRANSCRIBE_NPM: {{ .npm | quote }}
+  {{- if .apiUrl }}
+  AI_TRANSCRIBE_API_URL: {{ .apiUrl | quote }}
+  {{- end }}
+  {{- if .model }}
+  AI_TRANSCRIBE_MODEL: {{ .model | quote }}
+  {{- end }}
+  {{- end }}
   {{- end }}
 ---
 apiVersion: v1
