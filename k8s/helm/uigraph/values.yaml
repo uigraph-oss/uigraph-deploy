@@ -206,10 +206,15 @@ api:
   # Chromium, and UIGRAPH_VIDEO_RENDER_WORKER defaults to "auto", so a video doc is rendered
   # by whichever API replica picks the job up.
   video:
-    # auto | on | off. "auto" renders when ffmpeg and Chromium are both present, which they
-    # are in the published image. Set "off" to keep these pods serving HTTP only; videos then
-    # stay playable live in the app but never become MP4s (so no Confluence video embed).
-    renderWorker: auto
+    # auto | on | off. Off by default: rendering runs Chromium and ffmpeg inside the api
+    # pod, and the resources below are sized for a service that answers HTTP, not one that
+    # encodes video. A single render needs on the order of 2-3Gi, which is a whole node on
+    # the small instances a modest install runs on.
+    #
+    # To turn it on, set "auto" and raise resources.limits.memory to at least 3Gi first.
+    # Videos stay playable live in the app either way; what this gates is the MP4 render,
+    # and with it the Confluence video embed.
+    renderWorker: 'off'
     ffmpegPath: /usr/bin/ffmpeg
     chromiumPath: /usr/bin/chromium
     # Chromium pages rendered at once. Each one is a browser page holding a 1280x720 canvas,
@@ -224,13 +229,11 @@ api:
   replicaCount: 2
   port: 8080
   resources:
-    # A request-serving API needs little, but video.renderWorker above puts Chromium and
-    # ffmpeg in the same pod, and three concurrent render pages will not fit in 512Mi -- the
-    # pod is OOM-killed mid-render, taking the HTTP traffic on that replica with it. The
-    # limit is sized for rendering; requests stay small so idle replicas stay cheap. Dropping
-    # it back to 512Mi is safe only with video.renderWorker set to "off".
-    requests: { cpu: 250m, memory: 512Mi }
-    limits: { cpu: '2', memory: 3Gi }
+    # Sized for answering HTTP, which is all these pods do while video.renderWorker is off.
+    # Turning rendering on means raising this: Chromium plus ffmpeg will not fit in 512Mi and
+    # the pod is OOM-killed mid-render, taking that replica's in-flight requests with it.
+    requests: { cpu: 250m, memory: 256Mi }
+    limits: { cpu: '1', memory: 512Mi }
   autoscaling:
     enabled: true
     minReplicas: 2
