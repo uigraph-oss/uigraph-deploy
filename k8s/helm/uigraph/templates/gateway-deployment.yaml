@@ -55,14 +55,14 @@ spec:
                 secretKeyRef:
                   name: {{ include "uigraph.secretName" . }}
                   key: {{ .Values.secrets.keys.aiProviderApiKey }}
-            {{- if .Values.gateway.aiSpeech.npm }}
+            {{- if (.Values.gateway.aiSpeech | default dict).npm }}
             - name: AI_SPEECH_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ include "uigraph.secretName" . }}
                   key: {{ .Values.secrets.keys.aiSpeechApiKey }}
             {{- end }}
-            {{- if .Values.gateway.aiTranscribe.npm }}
+            {{- if (.Values.gateway.aiTranscribe | default dict).npm }}
             - name: AI_TRANSCRIBE_API_KEY
               valueFrom:
                 secretKeyRef:
