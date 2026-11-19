@@ -148,6 +148,38 @@ required. Leave `STORAGE_ACCESS_KEY`/`STORAGE_SECRET_KEY` blank in the Secret. T
 if you're pointing the chart at a non-AWS S3-compatible endpoint (MinIO, on-prem), where IRSA
 doesn't apply.
 
+## MCP connectors
+
+Admins can connect external MCP servers under **Settings > MCPs**. Nothing needs configuring for
+public servers such as Linear or Notion. To use MCP servers inside your cluster, allow them by name
+in your Helm values. Private addresses are blocked by default.
+
+```yaml
+mcp:
+  allowedAddresses:
+    - my-mcp.tools.svc.cluster.local:8080   # one service and port
+    - '*.mcp.svc.cluster.local'             # every service in the "mcp" namespace
+```
+
+- Use full service names (`<service>.<namespace>.svc.cluster.local`) here and in the connector URL.
+- Keep MCP servers in their own namespace and list a wildcard for that namespace only. Never list a
+  wildcard for a namespace with databases or other internal services.
+- Avoid `mcp.allowPrivateHosts: true`: it lifts the block for everything the API pod can reach,
+  including the Kubernetes API server and node cloud-metadata credentials.
+- If you restrict pod egress with network policies, the API pods must also be allowed to reach the
+  listed services. The chart does not create network policies.
+- The API runs several replicas by default; token refresh is serialized through Postgres, so nothing
+  extra is needed. Rate limits are counted per pod.
+- To rotate `UIGRAPH_SECRET_KEY`, add the old key to the Secret as `uigraph-secret-key-previous`,
+  set `uigraph-secret-key` to the new one, roll the pods, then run
+  `kubectl exec deploy/uigraph-api -- /usr/local/bin/uigraph-api reencrypt-mcp` (the deployment is
+  named `<release>-uigraph-api` unless the release is called `uigraph`; `kubectl get deploy` shows
+  it) and remove the previous key. The command covers MCP data only; keep the previous key until other features
+  that use the same key (Slack and GitHub apps, SSO, billing) have been re-keyed.
+
+The full guide, including every setting and the security model, is in
+[uigraph-api `docs/mcp-connectors.md`](https://github.com/uigraph-oss/uigraph-api/blob/main/docs/mcp-connectors.md).
+
 ## Upgrades
 
 ```bash

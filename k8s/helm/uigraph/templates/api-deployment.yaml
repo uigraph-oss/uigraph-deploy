@@ -61,6 +61,13 @@ spec:
                 secretKeyRef:
                   name: {{ include "uigraph.secretName" . }}
                   key: {{ .Values.secrets.keys.uigraphSecretKey }}
+            # Retired key, only present while rotating UIGRAPH_SECRET_KEY.
+            - name: UIGRAPH_SECRET_KEY_PREVIOUS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.uigraphSecretKeyPrevious }}
+                  optional: true
             - name: STORAGE_ACCESS_KEY
               valueFrom:
                 secretKeyRef:

@@ -101,6 +101,8 @@ uigraph-mcp auth default-org "Main Org"
 - **Something won't come up** — `docker compose logs <service>`.
 - **Start over** — `make docker-reset` wipes all data.
 - **Ports in use** — needs 3000, 5432, 8080, 8081, 8082, 8090, 9000-9001 free.
+- **Can't add an internal MCP server** — private addresses are blocked by default. In `docker-compose.yml`, set `MCP_ALLOWED_ADDRESSES` on the `uigraph-api` service (for example `my-mcp:8080`; see the commented example there). Details: [MCP connectors guide](https://github.com/uigraph-oss/uigraph-api/blob/main/docs/mcp-connectors.md).
+- **Sign-in loop after connecting an MCP server** — open the app on the same host as `UIGRAPH_PUBLIC_URL` (`localhost` and `127.0.0.1` are different hosts to a browser).
 
 ## Learn more / go to production
 
