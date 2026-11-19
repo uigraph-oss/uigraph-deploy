@@ -35,13 +35,19 @@ data:
   MCP_ALLOW_PRIVATE_HOSTS: 'true'
   {{- end }}
   {{- end }}
-  UIGRAPH_EMBED_ENABLED: {{ .Values.app.embedEnabled | quote }}
-  UIGRAPH_VIDEO_RENDER_WORKER: {{ .Values.api.video.renderWorker | quote }}
-  UIGRAPH_FFMPEG_PATH: {{ .Values.api.video.ffmpegPath | quote }}
-  UIGRAPH_CHROMIUM_PATH: {{ .Values.api.video.chromiumPath | quote }}
-  UIGRAPH_VIDEO_RENDER_PAGES: {{ .Values.api.video.renderPages | quote }}
-  {{- if .Values.api.video.voiceKey }}
-  UIGRAPH_VIDEO_VOICE_KEY: {{ .Values.api.video.voiceKey | quote }}
+  {{- /* `helm upgrade --reuse-values` keeps the previous release's values and does not
+         pick up a new chart's defaults, so every key added after a release was installed
+         is absent here, not merely unset. Read them through a dict that defaults to empty
+         and carry the default alongside, or the first upgrade after this chart ships dies
+         rendering the ConfigMap. */}}
+  {{- $video := .Values.api.video | default dict }}
+  UIGRAPH_EMBED_ENABLED: {{ .Values.app.embedEnabled | default false | quote }}
+  UIGRAPH_VIDEO_RENDER_WORKER: {{ $video.renderWorker | default "auto" | quote }}
+  UIGRAPH_FFMPEG_PATH: {{ $video.ffmpegPath | default "/usr/bin/ffmpeg" | quote }}
+  UIGRAPH_CHROMIUM_PATH: {{ $video.chromiumPath | default "/usr/bin/chromium" | quote }}
+  UIGRAPH_VIDEO_RENDER_PAGES: {{ $video.renderPages | default 3 | quote }}
+  {{- if $video.voiceKey }}
+  UIGRAPH_VIDEO_VOICE_KEY: {{ $video.voiceKey | quote }}
   {{- end }}
   {{- if .Values.app.embedFrameAncestors }}
   UIGRAPH_EMBED_FRAME_ANCESTORS: {{ .Values.app.embedFrameAncestors | quote }}
@@ -81,7 +87,7 @@ data:
   {{- if .Values.gateway.aiProvider.titleModel }}
   AI_PROVIDER_TITLE_MODEL: {{ .Values.gateway.aiProvider.titleModel | quote }}
   {{- end }}
-  {{- with .Values.gateway.aiSpeech }}
+  {{- with .Values.gateway.aiSpeech | default dict }}
   {{- if .npm }}
   AI_SPEECH_NPM: {{ .npm | quote }}
   {{- if .apiUrl }}
@@ -95,7 +101,7 @@ data:
   {{- end }}
   {{- end }}
   {{- end }}
-  {{- with .Values.gateway.aiTranscribe }}
+  {{- with .Values.gateway.aiTranscribe | default dict }}
   {{- if .npm }}
   AI_TRANSCRIBE_NPM: {{ .npm | quote }}
   {{- if .apiUrl }}
