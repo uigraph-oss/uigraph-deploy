@@ -205,6 +205,14 @@ mcp:
   # node's cloud metadata endpoint. Prefer allowedAddresses.
   allowPrivateHosts: false
 
+# Lifetimes for the OAuth tokens that MCP clients such as Claude get. Go durations: 15m, 2h, 720h.
+# Leave a value empty to use the default. A shorter access token limits what a leaked one can do;
+# the refresh token is how long a connected app stays signed in without the user approving again.
+oauth:
+  accessTokenTTL: 15m
+  refreshTokenTTL: 720h # 30 days
+  codeTTL: 5m
+
 api:
   # Rendering walkthrough videos happens inside these pods: the image carries ffmpeg and
   # Chromium, and UIGRAPH_VIDEO_RENDER_WORKER defaults to "auto", so a video doc is rendered
