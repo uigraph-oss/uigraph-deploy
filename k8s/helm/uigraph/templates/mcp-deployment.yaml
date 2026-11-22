@@ -38,6 +38,15 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.mcp.port }}
+          env:
+            - name: UIGRAPH_INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.gatewayInternalToken | default "gateway-internal-token" }}
+                  # A Secret that predates this key leaves the internal routes off rather than
+                  # stopping the pod.
+                  optional: true
           envFrom:
             - configMapRef:
                 name: {{ include "uigraph.componentFullname" (dict "root" . "component" "mcp") }}

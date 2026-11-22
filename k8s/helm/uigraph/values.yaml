@@ -55,6 +55,8 @@ secrets:
     aiSpeechApiKey: ai-speech-api-key
     aiTranscribeApiKey: ai-transcribe-api-key
     enterpriseInternalToken: enterprise-internal-token
+    # Shared by the gateway and MCP for the gateway's internal, computation-only routes.
+    gatewayInternalToken: gateway-internal-token
     slackClientSecret: slack-client-secret
   # Only used when secrets.existingSecret is empty. Leave blank and pass with
   # `--set secrets.values.xxx=...` or a values override file — do not commit real secrets here.
@@ -73,6 +75,8 @@ secrets:
     aiSpeechApiKey: ''
     aiTranscribeApiKey: ''
     enterpriseInternalToken: ''
+    # Blank derives a stable value from uigraphSecretKey, so a self-hosted install needs nothing.
+    gatewayInternalToken: ''
     slackClientSecret: ''
 
 # Managed Postgres (RDS). Password comes from the Secret (secrets.keys.postgresPassword).

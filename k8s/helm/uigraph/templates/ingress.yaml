@@ -16,6 +16,10 @@ metadata:
     {{- else }}
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
     {{- end }}
+    {{- if .Values.ingress.gatewayIngress.enabled }}
+    # The gateway's /v1/internal routes are for in-cluster callers only.
+    alb.ingress.kubernetes.io/actions.block-internal: '{"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"404","messageBody":"Not found"}}'
+    {{- end }}
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -36,6 +40,13 @@ spec:
     - host: {{ include "uigraph.gatewayHost" . | quote }}
       http:
         paths:
+          - path: /v1/internal
+            pathType: Prefix
+            backend:
+              service:
+                name: block-internal
+                port:
+                  name: use-annotation
           - path: /
             pathType: Prefix
             backend:

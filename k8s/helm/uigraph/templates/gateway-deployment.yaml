@@ -40,6 +40,14 @@ spec:
             - name: http
               containerPort: {{ .Values.gateway.port }}
           env:
+            - name: UIGRAPH_INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.gatewayInternalToken | default "gateway-internal-token" }}
+                  # A Secret that predates this key leaves the internal routes off rather than
+                  # stopping the pod.
+                  optional: true
             - name: STORAGE_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
