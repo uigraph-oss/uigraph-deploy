@@ -9,6 +9,7 @@ data:
   UIGRAPH_DOMAIN: {{ include "uigraph.appHost" . | quote }}
   UIGRAPH_PUBLIC_URL: {{ include "uigraph.publicUrl" . | quote }}
   UIGRAPH_FRONTEND_URL: {{ include "uigraph.frontendUrl" . | quote }}
+  UIGRAPH_MCP_PUBLIC_URL: {{ include "uigraph.mcpPublicUrl" . | quote }}
   UIGRAPH_INTERNAL_FRONTEND_URL: {{ include "uigraph.internalFrontendUrl" . | quote }}
   {{- if .Values.app.cookieDomain }}
   UIGRAPH_COOKIE_DOMAIN: {{ .Values.app.cookieDomain | quote }}
@@ -151,3 +152,4 @@ data:
   UIGRAPH_GATEWAY_URL: {{ include "uigraph.internalGatewayUrl" . | quote }}
   UIGRAPH_FRONTEND_URL: {{ include "uigraph.frontendUrl" . | quote }}
   UIGRAPH_MCP_PUBLIC_URL: {{ include "uigraph.mcpPublicUrl" . | quote }}
+  UIGRAPH_PUBLIC_URL: {{ include "uigraph.publicUrl" . | quote }}
