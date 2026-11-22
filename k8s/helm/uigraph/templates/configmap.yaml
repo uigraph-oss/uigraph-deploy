@@ -28,6 +28,17 @@ data:
   GITHUB_APP_CLIENT_ID: {{ .Values.githubApp.clientId | quote }}
   SLACK_CLIENT_ID: {{ .Values.slackApp.clientId | quote }}
   UIGRAPH_ENTERPRISE: {{ .Values.app.enterpriseEnabled | quote }}
+  {{- with .Values.oauth }}
+  {{- if .accessTokenTTL }}
+  UIGRAPH_OAUTH_ACCESS_TOKEN_TTL: {{ .accessTokenTTL | quote }}
+  {{- end }}
+  {{- if .refreshTokenTTL }}
+  UIGRAPH_OAUTH_REFRESH_TOKEN_TTL: {{ .refreshTokenTTL | quote }}
+  {{- end }}
+  {{- if .codeTTL }}
+  UIGRAPH_OAUTH_CODE_TTL: {{ .codeTTL | quote }}
+  {{- end }}
+  {{- end }}
   {{- with .Values.mcp }}
   {{- if .allowedAddresses }}
   MCP_ALLOWED_ADDRESSES: {{ join "," .allowedAddresses | quote }}
