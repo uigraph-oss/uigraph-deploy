@@ -42,9 +42,6 @@ locals {
     ai-speech-api-key         = var.ai_speech_api_key != null ? var.ai_speech_api_key : ""
     enterprise-internal-token = var.enterprise_internal_token != null ? var.enterprise_internal_token : ""
     slack-client-secret       = var.slack_client_secret
-    # Shared by the gateway and MCP for the gateway's internal routes. Derived the same way the
-    # chart derives it when it owns the Secret, so no new variable is needed; without this key
-    # the routes stay off (the pods' reference is optional) and video validation fails.
     gateway-internal-token = try(sha256("${random_password.uigraph_secret_key[0].result}/gateway-internal"), "")
   }
 
