@@ -42,6 +42,7 @@ locals {
     ai-speech-api-key         = var.ai_speech_api_key != null ? var.ai_speech_api_key : ""
     enterprise-internal-token = var.enterprise_internal_token != null ? var.enterprise_internal_token : ""
     slack-client-secret       = var.slack_client_secret
+    gateway-internal-token = try(sha256("${random_password.uigraph_secret_key[0].result}/gateway-internal"), "")
   }
 
   base_helm_values = {
