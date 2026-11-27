@@ -31,6 +31,9 @@ services:
       STORAGE_FORCE_PATH_STYLE: 'true'
       FIGMA_CLIENT_ID: '${FIGMA_CLIENT_ID:-}'
       FIGMA_CLIENT_SECRET: '${FIGMA_CLIENT_SECRET:-}'
+      # Autopilot (profile "autopilot"). Shared with uigraph-autopilot. Local evaluation only.
+      AUTOPILOT_INTERNAL_TOKEN: 'local-evaluation-autopilot-token-0123456789'
+      AUTOPILOT_INTERNAL_URL: 'http://uigraph-autopilot:8086'
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -119,6 +122,8 @@ services:
       UIGRAPH_MCP_PUBLIC_URL: 'http://localhost:8082'
       UIGRAPH_PUBLIC_URL: 'http://localhost:3000'
       UIGRAPH_INTERNAL_TOKEN: 'local-evaluation-internal-token-0123456789'
+      # Autopilot MCP tools; they answer "Autopilot unavailable" unless the autopilot profile runs.
+      AUTOPILOT_URL: 'http://uigraph-autopilot:8086'
     depends_on:
       uigraph-api: { condition: service_healthy }
     # No healthcheck: this image is a scratch/distroless build (just the static /mcp binary,
@@ -137,7 +142,27 @@ services:
       PORT: '8086'
       DATABASE_URL: 'postgres://uigraph:devpassword@postgres:5432/autopilot?sslmode=disable'
       LOG_LEVEL: 'info'
+      UIGRAPH_API_INTERNAL_URL: 'http://uigraph-api:8080'
+      AUTOPILOT_INTERNAL_TOKEN: 'local-evaluation-autopilot-token-0123456789'
+      # Seals stored model keys and Linear tokens. Local evaluation only: generate your own with
+      # `openssl rand -base64 32` for anything real.
+      AUTOPILOT_ENCRYPTION_KEY: 'bG9jYWwtZXZhbHVhdGlvbi1vbmx5LWtleS0zMmJ5dGU='
+      # Linear: create an OAuth app at linear.app/settings/api/applications with redirect
+      # http://localhost:3000/api/v1/autopilot/integrations/linear/callback, then set these.
+      LINEAR_CLIENT_ID: '${LINEAR_CLIENT_ID:-}'
+      LINEAR_CLIENT_SECRET: '${LINEAR_CLIENT_SECRET:-}'
+      LINEAR_WEBHOOK_SECRET: '${LINEAR_WEBHOOK_SECRET:-}'
+      LINEAR_REDIRECT_URL: 'http://localhost:3000/api/v1/autopilot/integrations/linear/callback'
+      LINEAR_SUCCESS_URL: 'http://localhost:3000/autopilot'
+      STORAGE_BACKEND: 'minio'
+      STORAGE_ENDPOINT: 'http://minio:9000'
+      STORAGE_BUCKET: 'uigraph'
+      STORAGE_ACCESS_KEY: 'uigraph'
+      STORAGE_SECRET_KEY: 'devpassword'
+      STORAGE_REGION: 'us-east-1'
+      STORAGE_FORCE_PATH_STYLE: 'true'
     depends_on:
+      uigraph-api: { condition: service_healthy }
       autopilot-db: { condition: service_completed_successfully }
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://localhost:8086/health || exit 1']

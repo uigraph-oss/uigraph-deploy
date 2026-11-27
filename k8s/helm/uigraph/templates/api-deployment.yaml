@@ -115,6 +115,19 @@ spec:
                   name: {{ include "uigraph.secretName" . }}
                   key: {{ .Values.secrets.keys.enterpriseInternalToken }}
             {{- end }}
+            {{- $ap := include "uigraph.autopilot" . | fromYaml }}
+            {{- if $ap.enabled }}
+            # Autopilot's internal routes (/internal/tokens, /internal/delegations, Slack DMs) and
+            # Slack button forwarding to Autopilot. Without the key those routes refuse everything.
+            - name: AUTOPILOT_INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.autopilotInternalToken | default "autopilot-internal-token" }}
+                  optional: true
+            - name: AUTOPILOT_INTERNAL_URL
+              value: {{ include "uigraph.internalAutopilotUrl" (dict "root" . "ap" $ap) | quote }}
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "uigraph.componentFullname" (dict "root" . "component" "api") }}

@@ -47,6 +47,12 @@ spec:
                   # A Secret that predates this key leaves the internal routes off rather than
                   # stopping the pod.
                   optional: true
+            {{- $ap := include "uigraph.autopilot" . | fromYaml }}
+            {{- if $ap.enabled }}
+            # Autopilot MCP tools call Autopilot as the caller; hidden when unset.
+            - name: AUTOPILOT_URL
+              value: {{ include "uigraph.internalAutopilotUrl" (dict "root" . "ap" $ap) | quote }}
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "uigraph.componentFullname" (dict "root" . "component" "mcp") }}

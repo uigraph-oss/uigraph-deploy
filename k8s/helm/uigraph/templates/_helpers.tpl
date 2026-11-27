@@ -191,6 +191,7 @@ Usage: $ap := include "uigraph.autopilot" . | fromYaml
     "port" 8086
     "logLevel" "info"
     "database" (dict "name" "autopilot" "params" "" "urlFromSecret" false)
+    "linear" (dict "clientId" "")
     "resources" (dict "requests" (dict "cpu" "50m" "memory" "64Mi") "limits" (dict "cpu" "250m" "memory" "256Mi")) -}}
 {{- toYaml (mergeOverwrite $defaults (deepCopy (.Values.autopilot | default dict))) -}}
 {{- end -}}
@@ -209,4 +210,12 @@ Usage: include "uigraph.autopilotDatabaseUrl" (dict "root" . "ap" $ap)
 {{- $url = printf "%s&%s" $url $db.params -}}
 {{- end -}}
 {{- $url -}}
+{{- end -}}
+
+{{/*
+http://<autopilot service>:<port>, for uigraph-api (Slack button forwarding) and uigraph-mcp.
+Usage: include "uigraph.internalAutopilotUrl" (dict "root" . "ap" $ap)
+*/}}
+{{- define "uigraph.internalAutopilotUrl" -}}
+{{- printf "http://%s:%v" (include "uigraph.componentFullname" (dict "root" .root "component" "autopilot")) .ap.port -}}
 {{- end -}}
