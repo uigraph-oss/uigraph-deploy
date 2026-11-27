@@ -1,0 +1,17 @@
+{{- $ap := include "uigraph.autopilot" . | fromYaml }}
+{{- if $ap.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "autopilot") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "autopilot") | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ $ap.port }}
+      targetPort: http
+  selector:
+    {{- include "uigraph.componentSelectorLabels" (dict "root" . "component" "autopilot") | nindent 4 }}
+{{- end }}

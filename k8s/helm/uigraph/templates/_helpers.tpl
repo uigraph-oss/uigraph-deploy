@@ -175,3 +175,38 @@ against env vars defined earlier in the same container's env list — see api-de
 {{- printf "%s://%s:%v" $scheme .Values.redis.host .Values.redis.port -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+uigraph-autopilot settings. `helm upgrade --reuse-values` against a release installed before
+autopilot existed leaves .Values.autopilot absent, not false, and `--set autopilot.enabled=true`
+on such a release sets only that one key. So every autopilot template reads through this dict,
+which carries the defaults from values.yaml, instead of reading .Values.autopilot directly.
+Usage: $ap := include "uigraph.autopilot" . | fromYaml
+*/}}
+{{- define "uigraph.autopilot" -}}
+{{- $defaults := dict
+    "enabled" false
+    "image" (dict "repository" "uigraph/uigraph-autopilot" "tag" "0.1.0")
+    "replicaCount" 1
+    "port" 8086
+    "logLevel" "info"
+    "database" (dict "name" "autopilot" "params" "" "urlFromSecret" false)
+    "resources" (dict "requests" (dict "cpu" "50m" "memory" "64Mi") "limits" (dict "cpu" "250m" "memory" "256Mi")) -}}
+{{- toYaml (mergeOverwrite $defaults (deepCopy (.Values.autopilot | default dict))) -}}
+{{- end -}}
+
+{{/*
+DATABASE_URL for uigraph-autopilot when it is built rather than read from the Secret: the same
+Postgres server and credentials as uigraph-api, but its own database. POSTGRES_PASSWORD is
+expanded by Kubernetes, as for uigraph.postgresUrl.
+Usage: include "uigraph.autopilotDatabaseUrl" (dict "root" . "ap" $ap)
+*/}}
+{{- define "uigraph.autopilotDatabaseUrl" -}}
+{{- $pg := .root.Values.postgres -}}
+{{- $db := .ap.database -}}
+{{- $url := printf "postgres://%s:$(POSTGRES_PASSWORD)@%s:%v/%s?sslmode=%s" $pg.user $pg.host $pg.port $db.name $pg.sslmode -}}
+{{- if $db.params -}}
+{{- $url = printf "%s&%s" $url $db.params -}}
+{{- end -}}
+{{- $url -}}
+{{- end -}}

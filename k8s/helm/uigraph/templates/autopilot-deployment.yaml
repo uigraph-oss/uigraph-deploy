@@ -1,0 +1,78 @@
+{{- $ap := include "uigraph.autopilot" . | fromYaml }}
+{{- if $ap.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "uigraph.componentFullname" (dict "root" . "component" "autopilot") }}
+  labels:
+    {{- include "uigraph.componentLabels" (dict "root" . "component" "autopilot") | nindent 4 }}
+spec:
+  replicas: {{ $ap.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "uigraph.componentSelectorLabels" (dict "root" . "component" "autopilot") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "uigraph.componentLabels" (dict "root" . "component" "autopilot") | nindent 8 }}
+      annotations:
+        {{- include "uigraph.podAnnotations" . | nindent 8 }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: {{ .Values.podSecurityContext.runAsNonRoot }}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: autopilot
+          image: '{{ $ap.image.repository }}:{{ $ap.image.tag }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ['ALL']
+          ports:
+            - name: http
+              containerPort: {{ $ap.port }}
+          env:
+            - name: PORT
+              value: {{ $ap.port | quote }}
+            - name: LOG_LEVEL
+              value: {{ $ap.logLevel | quote }}
+            {{- if $ap.database.urlFromSecret }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.autopilotDatabaseUrl | default "autopilot-database-url" }}
+            {{- else }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.postgresPassword }}
+            - name: DATABASE_URL
+              value: {{ include "uigraph.autopilotDatabaseUrl" (dict "root" . "ap" $ap) | quote }}
+            {{- end }}
+          # /health answers 503 while the database is unreachable. Readiness takes the pod out of
+          # the Service then; liveness gets more slack so a short database blip doesn't restart it.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml $ap.resources | nindent 12 }}
+{{- end }}

@@ -58,6 +58,8 @@ secrets:
     # Shared by the gateway and MCP for the gateway's internal, computation-only routes.
     gatewayInternalToken: gateway-internal-token
     slackClientSecret: slack-client-secret
+    # Full DATABASE_URL for uigraph-autopilot, read only with autopilot.database.urlFromSecret.
+    autopilotDatabaseUrl: autopilot-database-url
   # Only used when secrets.existingSecret is empty. Leave blank and pass with
   # `--set secrets.values.xxx=...` or a values override file — do not commit real secrets here.
   values:
@@ -78,6 +80,8 @@ secrets:
     # Blank derives a stable value from uigraphSecretKey, so a self-hosted install needs nothing.
     gatewayInternalToken: ''
     slackClientSecret: ''
+    # Only rendered with autopilot.enabled and autopilot.database.urlFromSecret.
+    autopilotDatabaseUrl: ''
 
 # Managed Postgres (RDS). Password comes from the Secret (secrets.keys.postgresPassword).
 postgres:
@@ -344,3 +348,31 @@ mcp:
   podDisruptionBudget:
     enabled: true
     minAvailable: 1
+
+# Autopilot (uigraph-autopilot). Optional, off by default: nothing below renders unless
+# enabled is true. It owns its own Postgres database and runs its migrations on startup.
+autopilot:
+  enabled: false
+  image:
+    repository: uigraph/uigraph-autopilot
+    tag: '0.1.0'
+  # Keep at 1: migrations run on startup and are not yet guarded against two pods racing.
+  replicaCount: 1
+  port: 8086
+  logLevel: info
+  database:
+    # By default DATABASE_URL is built from postgres.* above (same server, user and password)
+    # with this database name. The database must exist: CREATE DATABASE autopilot;
+    name: autopilot
+    # Extra query parameters appended to the built URL, e.g. "search_path=autopilot" to use an
+    # "autopilot" schema in postgres.database instead of a separate database (also set name to
+    # postgres.database).
+    params: ''
+    # true reads the whole DATABASE_URL from the Secret (secrets.keys.autopilotDatabaseUrl)
+    # instead of building it, e.g. to use a different user or server. With
+    # secrets.existingSecret set, add that key to your Secret; otherwise set
+    # secrets.values.autopilotDatabaseUrl.
+    urlFromSecret: false
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { cpu: 250m, memory: 256Mi }
