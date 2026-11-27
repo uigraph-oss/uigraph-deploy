@@ -58,8 +58,13 @@ secrets:
     # Shared by the gateway and MCP for the gateway's internal, computation-only routes.
     gatewayInternalToken: gateway-internal-token
     slackClientSecret: slack-client-secret
+    slackSigningSecret: slack-signing-secret
     # Full DATABASE_URL for uigraph-autopilot, read only with autopilot.database.urlFromSecret.
     autopilotDatabaseUrl: autopilot-database-url
+    autopilotInternalToken: autopilot-internal-token
+    autopilotEncryptionKey: autopilot-encryption-key
+    linearClientSecret: linear-client-secret
+    linearWebhookSecret: linear-webhook-secret
   # Only used when secrets.existingSecret is empty. Leave blank and pass with
   # `--set secrets.values.xxx=...` or a values override file — do not commit real secrets here.
   values:
@@ -80,8 +85,16 @@ secrets:
     # Blank derives a stable value from uigraphSecretKey, so a self-hosted install needs nothing.
     gatewayInternalToken: ''
     slackClientSecret: ''
+    slackSigningSecret: ''
     # Only rendered with autopilot.enabled and autopilot.database.urlFromSecret.
     autopilotDatabaseUrl: ''
+    # Shared by uigraph-api and uigraph-autopilot. Empty: derived from uigraphSecretKey.
+    autopilotInternalToken: ''
+    # Base64 of 32 random bytes (openssl rand -base64 32). Seals stored model keys and Linear
+    # tokens. Empty: those features stay off. Losing it makes stored keys unreadable.
+    autopilotEncryptionKey: ''
+    linearClientSecret: ''
+    linearWebhookSecret: ''
 
 # Managed Postgres (RDS). Password comes from the Secret (secrets.keys.postgresPassword).
 postgres:
@@ -356,7 +369,7 @@ autopilot:
   image:
     repository: uigraph/uigraph-autopilot
     tag: '0.1.0'
-  # Keep at 1: migrations run on startup and are not yet guarded against two pods racing.
+  # Migrations take a Postgres advisory lock, so more than one replica is safe.
   replicaCount: 1
   port: 8086
   logLevel: info
@@ -373,6 +386,10 @@ autopilot:
     # secrets.existingSecret set, add that key to your Secret; otherwise set
     # secrets.values.autopilotDatabaseUrl.
     urlFromSecret: false
+  # Linear integration: set clientId to the OAuth app's client id, and put its client secret and
+  # webhook signing secret in the Secret (secrets.values.linearClientSecret / linearWebhookSecret).
+  linear:
+    clientId: ''
   resources:
     requests: { cpu: 50m, memory: 64Mi }
     limits: { cpu: 250m, memory: 256Mi }
