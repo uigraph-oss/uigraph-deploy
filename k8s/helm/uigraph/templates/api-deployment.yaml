@@ -109,6 +109,13 @@ spec:
                 secretKeyRef:
                   name: {{ include "uigraph.secretName" . }}
                   key: {{ .Values.secrets.keys.slackClientSecret }}
+            # Verifies Slack button clicks (interactivity). Optional: without it clicks are refused.
+            - name: SLACK_SIGNING_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "uigraph.secretName" . }}
+                  key: {{ .Values.secrets.keys.slackSigningSecret | default "slack-signing-secret" }}
+                  optional: true
             - name: UIGRAPH_ENTERPRISE_INTERNAL_TOKEN
               valueFrom:
                 secretKeyRef:

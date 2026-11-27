@@ -58,6 +58,7 @@ secrets:
     # Shared by the gateway and MCP for the gateway's internal, computation-only routes.
     gatewayInternalToken: gateway-internal-token
     slackClientSecret: slack-client-secret
+    slackSigningSecret: slack-signing-secret
     # Full DATABASE_URL for uigraph-autopilot, read only with autopilot.database.urlFromSecret.
     autopilotDatabaseUrl: autopilot-database-url
     autopilotInternalToken: autopilot-internal-token
@@ -84,6 +85,7 @@ secrets:
     # Blank derives a stable value from uigraphSecretKey, so a self-hosted install needs nothing.
     gatewayInternalToken: ''
     slackClientSecret: ''
+    slackSigningSecret: ''
     # Only rendered with autopilot.enabled and autopilot.database.urlFromSecret.
     autopilotDatabaseUrl: ''
     # Shared by uigraph-api and uigraph-autopilot. Empty: derived from uigraphSecretKey.
