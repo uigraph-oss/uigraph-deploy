@@ -1,4 +1,5 @@
 {{- if .Values.ingress.enabled -}}
+{{- $ap := include "uigraph.autopilot" . | fromYaml -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -29,6 +30,17 @@ spec:
     - host: {{ include "uigraph.appHost" . | quote }}
       http:
         paths:
+          {{- if $ap.enabled }}
+          # Ahead of "/": the ALB evaluates these paths in order, and everything else under /api
+          # reaches uigraph-api through uigraph-ui's nginx.
+          - path: /api/v1/autopilot
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "uigraph.componentFullname" (dict "root" . "component" "autopilot") }}
+                port:
+                  number: {{ $ap.port }}
+          {{- end }}
           - path: /
             pathType: Prefix
             backend:

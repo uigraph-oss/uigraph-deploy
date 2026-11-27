@@ -95,6 +95,19 @@ uigraph-mcp auth default-org "Main Org"
 
 </details>
 
+<details>
+<summary><h2>Optional: Autopilot</h2></summary>
+
+Off by default. Start it with its profile:
+
+```bash
+docker compose --profile autopilot up -d
+```
+
+This adds `uigraph-autopilot` on **http://localhost:8086** and creates its `autopilot` database on the bundled Postgres. Needs port 8086 free.
+
+</details>
+
 ## Troubleshooting
 
 - **Docker daemon not running** — start Docker Desktop, re-run.

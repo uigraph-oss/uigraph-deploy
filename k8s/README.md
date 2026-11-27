@@ -180,6 +180,30 @@ mcp:
 The full guide, including every setting and the security model, is in
 [uigraph-api `docs/mcp-connectors.md`](https://github.com/uigraph-oss/uigraph-api/blob/main/docs/mcp-connectors.md).
 
+## Autopilot (optional)
+
+`uigraph-autopilot` is off by default. It keeps its own database on the same Postgres server and
+applies its migrations on startup. Create the database once, then enable it:
+
+```sql
+CREATE DATABASE autopilot;
+```
+
+```yaml
+autopilot:
+  enabled: true
+```
+
+The ingress then sends `/api/v1/autopilot` on the app host to the autopilot Service; everything
+else is unchanged. `DATABASE_URL` is built from `postgres.*` and the `postgres-password` Secret key,
+with `autopilot.database.name` as the database. To use a schema in the main database instead, set
+`autopilot.database.name` to `postgres.database` and `autopilot.database.params` to
+`search_path=autopilot`. To supply the whole URL yourself (a different user or server), set
+`autopilot.database.urlFromSecret: true` and put the URL in the Secret under
+`autopilot-database-url` (`secrets.keys.autopilotDatabaseUrl`), or in
+`secrets.values.autopilotDatabaseUrl` if the chart renders the Secret. Keep `autopilot.replicaCount`
+at 1.
+
 ## Upgrades
 
 ```bash

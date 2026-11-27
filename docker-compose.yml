@@ -125,6 +125,44 @@ services:
     # confirmed via `docker history` -- no shell, no wget, nothing a CMD-SHELL check could run).
     # Nothing else in this file depends on this service being healthy.
 
+  # Optional: `docker compose --profile autopilot up -d`. Autopilot keeps its own "autopilot"
+  # database on the bundled Postgres, created by autopilot-db below.
+  uigraph-autopilot:
+    image: uigraph/uigraph-autopilot:latest
+    profiles: [autopilot]
+    restart: unless-stopped
+    ports:
+      - '8086:8086'
+    environment:
+      PORT: '8086'
+      DATABASE_URL: 'postgres://uigraph:devpassword@postgres:5432/autopilot?sslmode=disable'
+      LOG_LEVEL: 'info'
+    depends_on:
+      autopilot-db: { condition: service_completed_successfully }
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:8086/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Creates the autopilot database if it is missing, then exits. A one-shot service rather than
+  # an initdb script, because initdb scripts only run on an empty volume and an existing install
+  # already has one.
+  autopilot-db:
+    image: postgres:16-alpine
+    profiles: [autopilot]
+    environment:
+      PGHOST: 'postgres'
+      PGUSER: 'uigraph'
+      PGPASSWORD: 'devpassword'
+      PGDATABASE: 'uigraph'
+    command:
+      - sh
+      - -c
+      - psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'autopilot'" | grep -q 1 || psql -c 'CREATE DATABASE autopilot'
+    depends_on:
+      postgres: { condition: service_healthy }
+
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
